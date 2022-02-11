@@ -24,8 +24,6 @@ def get_adj_matrix(g: Graph) -> DataFrame:
     df.fillna(0, inplace=True)
 
     for sub, obj in sub_obj_pairs:
-        if type(obj) == term.Literal:
-            continue
         df[obj][sub] = 1
 
     return df
