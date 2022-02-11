@@ -1,6 +1,5 @@
 from rdflib import Graph, term
 from pandas import DataFrame
-import numpy as np
 
 def main():
     graph = Graph()
@@ -30,15 +29,6 @@ def get_adj_matrix(g: Graph) -> DataFrame:
         df[obj][sub] = 1
 
     return df
-
-def remove_duplicates(arr):
-    return list(dict.fromkeys(arr))
-
-def remove_prefix(s):
-    if s.startswith("http:"):
-        return s[s.rindex("/") + 1:]
-    else:
-        return s
 
 if __name__ == "__main__":
     main()
