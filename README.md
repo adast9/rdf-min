@@ -1,2 +1,2 @@
-# rdf-min
+# teriyaki
 Summarize dynamic RDF graphs
