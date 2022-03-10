@@ -9,6 +9,12 @@ pub struct NodeInfo {
     outgoing: Vec<Vec<u32>>
 }
 
+impl NodeInfo {
+    fn new(parent: &Option<u32>, incoming: &Vec<Vec<u32>>, outgoing: &Vec<Vec<u32>>) -> Self {
+        NodeInfo { parent: parent.clone(), incoming: incoming.clone(), outgoing: outgoing.clone() }
+    }
+}
+
 pub(crate) fn parse_meta(path: &str) -> Result<(HashMap<u32, Vec<u32>>, HashMap<u32, NodeInfo>), io::Error> {
     let file_str = fs::read_to_string(path)?;
     let file_data: MetaFile = serde_json::from_str(&file_str)?;
@@ -21,7 +27,7 @@ pub(crate) fn parse_meta(path: &str) -> Result<(HashMap<u32, Vec<u32>>, HashMap<
     }
 
     for node in file_data.q {
-        nodes.insert(node.i, NodeInfo { parent: node.p, incoming: node.n, outgoing: node.o });
+        nodes.insert(node.i, NodeInfo::new(&node.p, &node.n, &node.o));
     }
 
     Ok((supernodes, nodes))
