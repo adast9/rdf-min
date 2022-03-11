@@ -10,11 +10,11 @@ pub(crate) struct Dictionary {
 }
 
 impl Dictionary {
-    pub fn new(triple_path: &str, dict_path: &str) -> Self {
-        let d = parse_dict(triple_path, dict_path).unwrap();
-        Self {
+    pub fn new(triple_path: &str, dict_path: &str) -> Result<Self, io::Error> {
+        let d = parse_dict(triple_path, dict_path)?;
+        Ok (Self {
             dict: d
-        }
+        })
     }
 
     pub fn get_dict(&self) -> &HashMap<String, u32> {
@@ -36,7 +36,7 @@ fn parse_dict(triple_path: &str, dict_path: &str) -> Result<HashMap<String, u32>
         Ok(read_dict(dict_path)?)
     } else {
         let (vec, dict) = gen_dict(triple_path)?;
-        write_dict(dict_path, &vec)?;
+        write_lines(dict_path, &vec)?;
         Ok(dict)
     }
 }
@@ -69,7 +69,7 @@ fn gen_dict(triple_path: &str) -> Result<(Vec<String>, HashMap<String, u32>), io
     Ok((vec, dict))
 }
 
-fn write_dict(dict_path: &str, vec: &Vec<String>) -> Result<(), io::Error>{
+fn write_lines(dict_path: &str, vec: &Vec<String>) -> Result<(), io::Error>{
     let mut file = OpenOptions::new()
         .create(true)
         .write(true)
