@@ -3,6 +3,7 @@ mod triple_parser;
 mod meta_parser;
 mod clique;
 mod clique_operations;
+mod io_helper;
 
 fn main() {
     let dict = dict::Dictionary::new("./example.nt", "./dict").unwrap();

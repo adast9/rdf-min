@@ -1,16 +1,13 @@
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
-use std::fs::OpenOptions;
-use std::io::prelude::*;
 use std::collections::HashMap;
+use std::io::Error;
+use crate::io_helper::*;
 
 pub(crate) struct Dictionary {
     dict: HashMap<String, u32>
 }
 
 impl Dictionary {
-    pub fn new(triple_path: &str, dict_path: &str) -> Result<Self, io::Error> {
+    pub fn new(triple_path: &str, dict_path: &str) -> Result<Self, Error> {
         let d = parse_dict(triple_path, dict_path)?;
         Ok (Self {
             dict: d
@@ -29,7 +26,7 @@ impl Dictionary {
     }
 }
 
-fn parse_dict(triple_path: &str, dict_path: &str) -> Result<HashMap<String, u32>, io::Error> {
+fn parse_dict(triple_path: &str, dict_path: &str) -> Result<HashMap<String, u32>, Error> {
     // todo: handle blank nodes with a queue
 
     if file_exists(dict_path) {
@@ -41,7 +38,7 @@ fn parse_dict(triple_path: &str, dict_path: &str) -> Result<HashMap<String, u32>
     }
 }
 
-fn read_dict(dict_path: &str) -> Result<HashMap<String, u32>, io::Error> {
+fn read_dict(dict_path: &str) -> Result<HashMap<String, u32>, Error> {
     let mut dict: HashMap<String, u32> = HashMap::new();
     let lines = read_lines(dict_path)?;
     
@@ -51,7 +48,7 @@ fn read_dict(dict_path: &str) -> Result<HashMap<String, u32>, io::Error> {
     Ok(dict)
 }
 
-fn gen_dict(triple_path: &str) -> Result<(Vec<String>, HashMap<String, u32>), io::Error> {
+fn gen_dict(triple_path: &str) -> Result<(Vec<String>, HashMap<String, u32>), Error> {
     let mut vec: Vec<String> = Vec::new();
     let mut dict: HashMap<String, u32> = HashMap::new();
     let lines = read_lines(triple_path)?;
@@ -67,28 +64,4 @@ fn gen_dict(triple_path: &str) -> Result<(Vec<String>, HashMap<String, u32>), io
         }
     }
     Ok((vec, dict))
-}
-
-fn write_lines(dict_path: &str, vec: &Vec<String>) -> Result<(), io::Error>{
-    let mut file = OpenOptions::new()
-        .create(true)
-        .write(true)
-        .append(true)
-        .open(dict_path)
-        .unwrap();
-
-    for s in vec {
-        writeln!(file, "{}", s)?
-    }
-    Ok(())
-}
-
-fn read_lines<P>(path: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
-    let file = File::open(path)?;
-    Ok(io::BufReader::new(file).lines())
-}
-
-fn file_exists(path: &str) -> bool {
-    return std::path::Path::new(path).exists();
 }
