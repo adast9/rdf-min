@@ -5,10 +5,10 @@ use std::io::{BufRead, BufReader, self};
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
 pub(crate) struct Triple {
-	sub: u32,
-	pred: u32,
-    obj: u32,
-    isType: bool
+	pub sub: u32,
+	pub pred: u32,
+    pub obj: u32,
+    pub is_type: bool
 }
 
 pub(crate) fn push_triples_into_vector(dict: &HashMap<String, u32>) -> Result<Vec<Triple>, io::Error> {
@@ -27,7 +27,7 @@ pub(crate) fn push_triples_into_vector(dict: &HashMap<String, u32>) -> Result<Ve
             is_type_pred = true;
         }
         //GetID does not exist. Its pseudo 
-        vector_of_triples.push(Triple{sub: *dict.get(line_splits[0]).unwrap(), pred: *dict.get(line_splits[1]).unwrap(), obj: *dict.get(line_splits[2]).unwrap(), isType: is_type_pred});
+        vector_of_triples.push(Triple{sub: *dict.get(line_splits[0]).unwrap(), pred: *dict.get(line_splits[1]).unwrap(), obj: *dict.get(line_splits[2]).unwrap(), is_type: is_type_pred});
         //println!("{}", line_splits[i])
     }
     Ok(vector_of_triples)
