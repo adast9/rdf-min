@@ -2,7 +2,7 @@ mod dict;
 mod triple_parser;
 mod meta_parser;
 mod clique;
-mod clique_operations;
+mod clique_creation;
 mod io_helper;
 
 fn main() {
