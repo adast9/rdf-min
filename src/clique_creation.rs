@@ -1,100 +1,86 @@
 use crate::triple_parser::Triple;
 use crate::clique::{Clique};
 
-fn create_all_cliques(vec_of_triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
+pub(crate) fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
+    let mut source_cliques: Vec<Clique> = Vec::new();
+    let mut target_cliques: Vec<Clique> = Vec::new();
 
-    return (create_source_clique(vec_of_triples), create_target_clique(vec_of_triples));
+    for triple in triples {
+        add_new_triple(triple, &mut source_cliques, true);
+        add_new_triple(triple, &mut target_cliques, false);
+    }
+
+    return (source_cliques, target_cliques);
 }
 
-fn create_source_clique(vec_of_triples: &Vec<Triple>) -> Vec<Clique> {
-    let mut source_clique: Vec<Clique> = Vec::new();
+fn add_new_triple(triple: &Triple, cliques: &mut Vec<Clique>, is_source: bool) {
+    if triple.is_type { return };
 
-    for triple in vec_of_triples.iter() {
-        //Case: when no pred exists, then create a new clique
-        match is_predicate_present(&source_clique, &triple) {
-            false => { 
-                source_clique.push(Clique::new(&vec!(triple.pred), &vec!(triple.sub)));
-                continue;
-            },
-            true => (), 
+    let pred_index = index_of_pred(&cliques, &triple);
+    let node_index = if is_source { index_of_sub(&cliques, &triple) } else { index_of_obj(&cliques, &triple) };
+    
+    // If both pred and node are new - Add new clique
+    if pred_index == None && node_index == None {
+        if is_source {
+            cliques.push(Clique::new(&vec!(triple.pred), &vec!(triple.sub)));
+        }
+        else {
+            cliques.push(Clique::new(&vec!(triple.pred), &vec!(triple.obj)));
         }
 
-        //Case: when the predicate already exists, but not the subject, then put the subject into the clique of pred
-        match index_of_pred(&source_clique, &triple) {
-            Some(index) => {
-                source_clique[index].nodes.push(triple.sub);
-                continue;
-            },
-            None => (),
-        }
-        
-        //Case: when the subject already exists, but not the predicate, then put the predicate into the clique of sub
-        match index_of_node(&source_clique, &triple) {
-            Some(index) => {
-                source_clique[index].preds.push(triple.pred);
-                continue;
-            },
-            None => (),
-        }
     }
-    return source_clique;
-}
 
-fn create_target_clique(vec_of_triples: &Vec<Triple>) -> Vec<Clique> {
-    let mut target_clique: Vec<Clique> = Vec::new();
-
-    for triple in vec_of_triples.iter() {
-        //Case: when no pred exists, then create a new clique
-        match is_predicate_present(&target_clique, &triple) {
-            false => { 
-                target_clique.push(Clique::new(&vec!(triple.pred), &vec!(triple.obj)));
-                continue;
-            },
-            true => (), 
-        }
-
-        //Case: when the predicate already exists, but not the object, then put the object into the clique of pred
-        match index_of_pred(&target_clique, &triple) {
-            Some(index) => {
-                target_clique[index].nodes.push(triple.obj);
-                continue;
-            },
-            None => (),
-        }
-        
-        //Case: when the object already exists, but not the predicate, then put the predicate into the clique of obj
-        match index_of_node(&target_clique, &triple) {
-            Some(index) => {
-                target_clique[index].preds.push(triple.pred);
-                continue;
-            },
-            None => (),
-        }
+    // If only pred is new - Push pred to preds in already existing clique
+    else if pred_index == None {
+        cliques[node_index.unwrap()].preds.push(triple.pred);
     }
-    return target_clique;
-}
 
-fn is_predicate_present(clique: &Vec<Clique>, triple: &Triple) -> bool {
-    for c in clique {
-        if !c.preds.contains(&triple.pred) {
-            return false;
-        }
+    // If only node is new - Push sub to nodes in alreayd existing clique
+    else if node_index == None {
+        cliques[pred_index.unwrap()].nodes.push(if is_source { triple.sub } else { triple.obj });
     }
-    return true;
+
+    // If none are new
+    else {
+        let pred_i = pred_index.unwrap();
+        let node_i = node_index.unwrap();
+
+        // If they are not in the same clique - Merge cliques
+        if pred_i != node_i {
+            let mut pred_clique = cliques[pred_i].clone();
+            let sub_clique = cliques[node_i].clone();
+            pred_clique.merge(&sub_clique);
+
+            cliques[pred_i] = pred_clique;
+            cliques.remove(node_i);
+        }
+
+        // If they are in the same clique - Do nothing
+    }
 }
 
 fn index_of_pred(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
     for (index, c) in clique.iter().enumerate() {
         if c.preds.contains(&triple.pred) {
-            Some(index);
+            return Some(index);
+        }
+    }
+    return None
+}
+
+fn index_of_sub(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
+    for (index, c) in clique.iter().enumerate() {
+        if c.nodes.contains(&triple.sub) {
+            return Some(index);
         }
     }
     return None;
 }
-fn index_of_node(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
+
+fn index_of_obj(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
     for (index, c) in clique.iter().enumerate() {
-        if c.nodes.contains(&triple.sub) {
-            Some(index);
+        if c.nodes.contains(&triple.obj) {
+            return Some(index);
         }
     }
     return None;

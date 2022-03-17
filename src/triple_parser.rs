@@ -11,9 +11,9 @@ pub(crate) struct Triple {
     pub is_type: bool
 }
 
-pub(crate) fn push_triples_into_vector(dict: &HashMap<String, u32>) -> Result<Vec<Triple>, io::Error> {
-    let filename = "/Users/alankhorsid/Documents/Datalogi/6. semester/P6/teriyaki/datasets/example.nt";
-    let file = File::open(filename)?;
+pub(crate) fn push_triples_into_vector(triple_path: &str, dict: &HashMap<String, u32>) -> Result<Vec<Triple>, io::Error> {
+    // let filename = "/Users/alankhorsid/Documents/Datalogi/6. semester/P6/teriyaki/datasets/example.nt";
+    let file = File::open(triple_path)?;
     let reader = BufReader::new(file);
 
     let mut vector_of_triples: Vec<Triple> = Vec::new();
