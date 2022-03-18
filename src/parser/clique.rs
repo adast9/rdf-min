@@ -1,7 +1,38 @@
-use crate::triple_parser::Triple;
-use crate::clique::{Clique};
+use crate::parser::triple::Triple;
 
-pub(crate) fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
+#[derive(Clone)]
+pub struct Clique {
+    pub preds: Vec<u32>,
+    pub nodes: Vec<u32>,
+}
+
+impl Clique {
+    pub fn new(preds: &Vec<u32>, nodes: &Vec<u32>) -> Self {
+        Clique {
+            preds: preds.clone(),
+            nodes: nodes.clone(),
+        }
+    }
+
+    pub fn merge(&mut self, c: &Clique) {
+        self.preds.append(&mut c.preds.clone());
+        self.nodes.append(&mut c.nodes.clone());
+    }
+
+    pub fn node_intersection(&self, c: &Clique) -> Vec<u32> {
+        let mut intersection: Vec<u32> = Vec::new();
+
+        for node in &self.nodes {
+            if c.nodes.contains(&node) {
+                intersection.push(node.clone());
+            }
+        }
+
+        return intersection;
+    }
+}
+
+pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
     let mut source_cliques: Vec<Clique> = Vec::new();
     let mut target_cliques: Vec<Clique> = Vec::new();
 
@@ -14,32 +45,34 @@ pub(crate) fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>
 }
 
 fn add_new_triple(triple: &Triple, cliques: &mut Vec<Clique>, is_source: bool) {
-    if triple.is_type { return };
+    if triple.is_type {
+        return;
+    };
 
     let pred_index = index_of_pred(&cliques, &triple);
-    let node_index = if is_source { index_of_sub(&cliques, &triple) } else { index_of_obj(&cliques, &triple) };
-    
+    let node_index = if is_source {
+        index_of_sub(&cliques, &triple)
+    } else {
+        index_of_obj(&cliques, &triple)
+    };
     // If both pred and node are new - Add new clique
     if pred_index == None && node_index == None {
         if is_source {
-            cliques.push(Clique::new(&vec!(triple.pred), &vec!(triple.sub)));
+            cliques.push(Clique::new(&vec![triple.pred], &vec![triple.sub]));
+        } else {
+            cliques.push(Clique::new(&vec![triple.pred], &vec![triple.obj]));
         }
-        else {
-            cliques.push(Clique::new(&vec!(triple.pred), &vec!(triple.obj)));
-        }
-
     }
-
     // If only pred is new - Push pred to preds in already existing clique
     else if pred_index == None {
         cliques[node_index.unwrap()].preds.push(triple.pred);
     }
-
     // If only node is new - Push sub to nodes in alreayd existing clique
     else if node_index == None {
-        cliques[pred_index.unwrap()].nodes.push(if is_source { triple.sub } else { triple.obj });
+        cliques[pred_index.unwrap()]
+            .nodes
+            .push(if is_source { triple.sub } else { triple.obj });
     }
-
     // If none are new
     else {
         let pred_i = pred_index.unwrap();
@@ -65,7 +98,7 @@ fn index_of_pred(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
             return Some(index);
         }
     }
-    return None
+    return None;
 }
 
 fn index_of_sub(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
