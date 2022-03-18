@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub(crate) struct Clique {
     pub preds: Vec<u32>,
     pub nodes: Vec<u32>

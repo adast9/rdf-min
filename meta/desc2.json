@@ -2,7 +2,7 @@
   "supenodes": [
     { "id": "p6:DD", "singlenodes": ["p6:cs_22_dat_6_01", "p6:cs_22_dat_6_11"] },
     { "id": "p6:AT", "singlenodes": ["p6:alan", "p6:theodor"] },
-    { "id": "p6:SD", "singlenodes": ["p6:alan", "p6:theodor"] },
+    { "id": "p6:SD", "singlenodes": ["p6:ss", "p6:dtg"] },
     { "id": "p6:ENL", "singlenodes": ["p6:emil", "p6:niels", "p6:lasse"] }
   ],
 
