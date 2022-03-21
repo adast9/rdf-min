@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use crate::clique::Clique;
 
-fn get_index_map(source_clique: &Vec<Clique>, target_clique: &Vec<Clique>) -> HashMap<u32, [u32; 2]> {
+fn get_index_map(
+    source_clique: &Vec<Clique>,
+    target_clique: &Vec<Clique>,
+) -> HashMap<u32, [u32; 2]> {
     let mut index_map: HashMap<u32, [u32; 2]> = HashMap::new();
 
     for (i, c) in source_clique.iter().enumerate() {

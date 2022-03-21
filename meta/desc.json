@@ -1,22 +1,26 @@
 {
-  "supenodes": {
-    "p6:DD": ["p6:cs_22_dat_6_01", "p6:cs_22_dat_6_11"],
-    "p6:AT": ["p6:alan", "p6:theodor"],
-    "p6:SD": ["p6:ss", "p6:dtg"],
-    "p6:ENL": ["p6:emil", "p6:niels", "p6:lasse"]
-  },
-  "nodes": {
-    "p6:dtg": {
+  "supenodes": [
+    { "id": "p6:DD", "singlenodes": ["p6:cs_22_dat_6_01", "p6:cs_22_dat_6_11"] },
+    { "id": "p6:AT", "singlenodes": ["p6:alan", "p6:theodor"] },
+    { "id": "p6:SD", "singlenodes": ["p6:ss", "p6:dtg"] },
+    { "id": "p6:ENL", "singlenodes": ["p6:emil", "p6:niels", "p6:lasse"] }
+  ],
+
+  "nodes": [
+    {
+      "id": "p6:dtg",
       "parent": "p6:SD",
       "incoming": [["p6:teaching_assistant", "p6:alan"]],
       "outgoing": [["w3:type", "p6:course"]]
     },
-    "p6:ss": {
+    {
+      "id": "p6:ss",
       "parent": "p6:SD",
       "incoming": [["p6:teaching_assistant", "p6:theodor"]],
       "outgoing": [["w3:type", "p6:course"]]
     },
-    "p6:adam": {
+    {
+      "id": "p6:adam",
       "parent": null,
       "incoming": [
         ["p6:member", "p6:running_club"],
@@ -27,7 +31,8 @@
         ["w3:type", "p6:student"]
       ]
     },
-    "p6:alan": {
+    {
+      "id": "p6:alan",
       "parent": "p6:AT",
       "incoming": [
         ["p6:member", "p6:cs_22_dat_6_11"],
@@ -38,12 +43,14 @@
         ["w3:type", "p6:student"]
       ]
     },
-    "p6:alvaro": {
+    {
+      "id": "p6:alvaro",
       "parent": null,
       "incoming": [],
-      "outgoing": ["w3:type", "p6:supervisor"]
+      "outgoing": [["w3:type", "p6:supervisor"]]
     },
-    "p6:cs_22_dat_6_01": {
+    {
+      "id": "p6:cs_22_dat_6_01",
       "parent": "p6:DD",
       "incoming": [["p6:supervises", "p6:olivier"]],
       "outgoing": [
@@ -54,7 +61,8 @@
         ["p6:member", "p6:emil"]
       ]
     },
-    "p6:cs_22_dat_6_11": {
+    {
+      "id": "p6:cs_22_dat_6_11",
       "parent": "p6:DD",
       "incoming": [["p6:supervises", "p6:olivier"]],
       "outgoing": [
@@ -64,7 +72,8 @@
         ["p6:member", "p6:alan"]
       ]
     },
-    "p6:emil": {
+    {
+      "id": "p6:emil",
       "parent": "p6:ENL",
       "incoming": [
         ["p6:member", "p6:cs_22_dat_6_01"],
@@ -72,7 +81,8 @@
       ],
       "outgoing": [["w3:type", "p6:student"]]
     },
-    "p6:esben": {
+    {
+      "id": "p6:esben",
       "parent": null,
       "incoming": [["p6:member", "p6:cs_22_dat_6_11"]],
       "outgoing": [
@@ -80,12 +90,14 @@
         ["w3:type", "p6:student"]
       ]
     },
-    "p6:lasse": {
+    {
+      "id": "p6:lasse",
       "parent": "p6:ENL",
       "incoming": [["p6:member", "p6:cs_22_dat_6_01"]],
       "outgoing": [["w3:type", "p6:student"]]
     },
-    "p6:niels": {
+    {
+      "id": "p6:niels",
       "parent": "p6:ENL",
       "incoming": [
         ["p6:member", "p6:cs_22_dat_6_01"],
@@ -94,7 +106,8 @@
       ],
       "outgoing": [["w3:type", "p6:student"]]
     },
-    "p6:olivier": {
+    {
+      "id": "p6:olivier",
       "parent": null,
       "incoming": [],
       "outgoing": [
@@ -103,7 +116,8 @@
         ["w3:type", "p6:supervisor"]
       ]
     },
-    "p6:running_club": {
+    {
+      "id": "p6:running_club",
       "parent": null,
       "incoming": [],
       "outgoing": [
@@ -112,7 +126,8 @@
         ["p6:member", "p6:emil"]
       ]
     },
-    "p6:theodor": {
+    {
+      "id": "p6:theodor",
       "parent": "p6:AT",
       "incoming": [["p6:member", "p6:cs_22_dat_6_01"]],
       "outgoing": [
@@ -120,5 +135,5 @@
         ["w3:type", "p6:student"]
       ]
     }
-  }
+  ]
 }
