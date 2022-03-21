@@ -4,8 +4,6 @@ use std::io::{self, BufRead, BufReader};
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
-mod Bob {}
-
 pub struct Triple {
     pub sub: u32,
     pub pred: u32,

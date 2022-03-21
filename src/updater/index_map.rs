@@ -1,8 +1,7 @@
 use std::collections::HashMap;
+use crate::parser::clique::Clique;
 
-use crate::clique::Clique;
-
-fn get_index_map(
+pub fn get_index_map(
     source_clique: &Vec<Clique>,
     target_clique: &Vec<Clique>,
 ) -> HashMap<u32, [u32; 2]> {

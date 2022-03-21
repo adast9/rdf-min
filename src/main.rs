@@ -1,6 +1,7 @@
 mod parser;
 mod tests;
 mod util;
+mod updater;
 
 const TRIPLE_PATH: &str = "C:/dev/teriyaki/datasets/example.nt";
 const DICT_PATH: &str = "C:/dev/teriyaki/meta/";
