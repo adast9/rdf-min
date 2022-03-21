@@ -41,6 +41,37 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
         add_new_triple(triple, &mut target_cliques, false);
     }
 
+    source_cliques.push(Clique::new(&vec![], &vec![]));
+
+    for triple in triples {
+        let mut node_found = false;
+        for clique in &source_cliques {
+            if clique.nodes.contains(&triple.sub) {
+                node_found = true;
+                break;
+            }
+        }
+
+        if !node_found {
+            let len = source_cliques.len();
+            source_cliques[len - 1].nodes.push(triple.sub);
+        }
+
+        node_found = false;
+        for clique in &target_cliques {
+            if clique.nodes.contains(&triple.obj) {
+                node_found = true;
+                break;
+            }
+        }
+
+        if !node_found {
+            let len = target_cliques.len();
+            target_cliques[len - 1].nodes.push(triple.obj);
+        }
+
+    }
+
     return (source_cliques, target_cliques);
 }
 

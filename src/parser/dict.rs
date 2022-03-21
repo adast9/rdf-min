@@ -4,7 +4,6 @@ use std::io::Error;
 
 pub fn parse_dict(triple_path: &str, dict_path: &str) -> Result<HashMap<String, u32>, Error> {
     // todo: handle blank nodes with a queue
-
     if io::file_exists(dict_path) {
         Ok(read_dict(dict_path)?)
     } else {
@@ -27,7 +26,6 @@ fn gen_dict(triple_path: &str) -> Result<(Vec<String>, HashMap<String, u32>), Er
     let mut vec: Vec<String> = Vec::new();
     let mut dict: HashMap<String, u32> = HashMap::new();
     let lines = io::read_lines(triple_path)?;
-
     for l in lines {
         let l = l?;
         let v: Vec<&str> = l.split(' ').collect();

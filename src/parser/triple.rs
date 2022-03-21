@@ -11,7 +11,27 @@ pub struct Triple {
     pub is_type: bool,
 }
 
-pub fn push_triples_into_vector(
+impl Triple {
+    pub fn new(line: &String, dict: &HashMap<String, u32>) -> Self {
+        let line_splits: Vec<&str> = line.split(" ").collect();
+        let mut is_type_pred = false;
+
+        if line_splits[1] == TYPE_STRING {
+            is_type_pred = true;
+        }
+
+        Triple {
+            sub: *dict.get(line_splits[0]).unwrap(),
+            pred: *dict.get(line_splits[1]).unwrap(),
+            obj: *dict.get(line_splits[2]).unwrap(),
+            is_type: is_type_pred,
+        }
+    }
+
+    const TYPE_STRING: &'static str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+}
+
+pub fn get_triples(
     triple_path: &str,
     dict: &HashMap<String, u32>,
 ) -> Result<Vec<Triple>, io::Error> {
@@ -19,23 +39,10 @@ pub fn push_triples_into_vector(
     let reader = BufReader::new(file);
 
     let mut vector_of_triples: Vec<Triple> = Vec::new();
-    let mut is_type_pred = false;
 
     for line in reader.lines() {
         let line = line?;
-        let line_splits: Vec<&str> = line.split(" ").collect();
-
-        if line_splits[1] == TYPE_STRING {
-            is_type_pred = true;
-        }
-        //GetID does not exist. Its pseudo
-        vector_of_triples.push(Triple {
-            sub: *dict.get(line_splits[0]).unwrap(),
-            pred: *dict.get(line_splits[1]).unwrap(),
-            obj: *dict.get(line_splits[2]).unwrap(),
-            is_type: is_type_pred,
-        });
-        //println!("{}", line_splits[i])
+        vector_of_triples.push(Triple::new(&line, dict));
     }
     Ok(vector_of_triples)
 }
