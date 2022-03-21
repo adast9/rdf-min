@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use crate::parser::clique::Clique;
+use std::collections::HashMap;
 
 pub fn get_index_map(
     source_clique: &Vec<Clique>,

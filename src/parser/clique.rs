@@ -122,7 +122,7 @@ fn add_new_triple(triple: &Triple, cliques: &mut Vec<Clique>, is_source: bool) {
     }
 }
 
-fn index_of_pred(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
+pub fn index_of_pred(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
     for (index, c) in clique.iter().enumerate() {
         if c.preds.contains(&triple.pred) {
             return Some(index);
@@ -131,7 +131,7 @@ fn index_of_pred(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
     return None;
 }
 
-fn index_of_sub(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
+pub fn index_of_sub(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
     for (index, c) in clique.iter().enumerate() {
         if c.nodes.contains(&triple.sub) {
             return Some(index);
@@ -140,7 +140,7 @@ fn index_of_sub(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
     return None;
 }
 
-fn index_of_obj(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
+pub fn index_of_obj(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
     for (index, c) in clique.iter().enumerate() {
         if c.nodes.contains(&triple.obj) {
             return Some(index);

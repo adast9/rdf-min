@@ -1,6 +1,6 @@
+use crate::util::io;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use std::io::Error;
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
@@ -29,18 +29,48 @@ impl Triple {
     }
 }
 
-pub fn push_triples_into_vector(
-    triple_path: &str,
+pub fn get_triples(
+    triple_lines: &Vec<String>,
+    update_path: &str,
     dict: &HashMap<String, u32>,
-) -> Result<Vec<Triple>, io::Error> {
-    let file = File::open(triple_path)?;
-    let reader = BufReader::new(file);
+) -> Result<(Vec<Triple>, Vec<Triple>, Vec<Triple>), Error> {
+    let triples = get_current_triples(&triple_lines, dict)?;
+    let (additions, deletions) = get_update_triples(update_path, dict)?;
 
-    let mut vector_of_triples: Vec<Triple> = Vec::new();
+    Ok((triples, additions, deletions))
+}
 
-    for line in reader.lines() {
-        let line = line?;
-        vector_of_triples.push(Triple::new(&line, dict));
+fn get_current_triples(
+    triple_lines: &Vec<String>,
+    dict: &HashMap<String, u32>,
+) -> Result<Vec<Triple>, Error> {
+    let mut triples: Vec<Triple> = Vec::new();
+
+    for l in triple_lines {
+        triples.push(Triple::new(&l, dict));
     }
-    Ok(vector_of_triples)
+    Ok(triples)
+}
+
+fn get_update_triples(
+    update_path: &str,
+    dict: &HashMap<String, u32>,
+) -> Result<(Vec<Triple>, Vec<Triple>), Error> {
+    // todo: validate update triples
+    let mut additions: Vec<Triple> = Vec::new();
+    let mut deletions: Vec<Triple> = Vec::new();
+
+    for l in io::read_lines(update_path)? {
+        // if l starts with '-', then it is a deletion
+        let ch = l.chars().next().unwrap();
+
+        if ch == '-' {
+            let mut l = l;
+            l.remove(0);
+            deletions.push(Triple::new(&l, dict));
+        } else {
+            additions.push(Triple::new(&l, dict));
+        }
+    }
+    Ok((additions, deletions))
 }
