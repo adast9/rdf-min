@@ -7,10 +7,15 @@ mod clique_change;
 mod index_map;
 mod meta_parser;
 
-pub fn add(source_clique: &mut Vec<Clique>, target_clique: &mut Vec<Clique>, triple: &Triple) {
+pub fn add(
+    source_clique: &mut Vec<Clique>,
+    target_clique: &mut Vec<Clique>,
+    triple: &Triple,
+) -> Vec<Clique_Change> {
     let mut index_map = index_map::get_index_map(source_clique, &target_clique);
 
     let changes = get_clique_changes(&mut index_map, &triple, source_clique, target_clique);
+    changes
 }
 
 fn get_clique_changes(
@@ -37,8 +42,13 @@ fn get_clique_change(
     clique: &mut Vec<Clique>,
     is_source: bool,
 ) -> Option<Clique_Change> {
-    let node_index = index_map.get(&triple.sub).unwrap()[0];
     let pred_index = index_map.get(&triple.pred).unwrap()[0];
+    let node_index: usize;
+    if is_source {
+        node_index = index_map.get(&triple.sub).unwrap()[0];
+    } else {
+        node_index = index_map.get(&triple.obj).unwrap()[0];
+    }
 
     if node_index != pred_index {
         // get cliques to merge
@@ -53,9 +63,12 @@ fn get_clique_change(
             change = Clique_Change::new(node_index, pred_clique.nodes.clone(), is_source);
         }
 
-        // merge pred_clique into node_clique
+        // merge pred_clique into node_clique and empty pred_clique
+        // (Vi kan ikke bare fjerne pred_clique, da vores værdier i index_map bliver fucked)
         node_clique.nodes.append(&mut pred_clique.nodes);
+        node_clique.preds.append(&mut pred_clique.preds);
         clique[node_index] = node_clique;
+        clique[pred_index] = Clique::empty();
 
         // Update index_map
         index_map::update_index_map(index_map, &pred_clique, node_index, is_source);

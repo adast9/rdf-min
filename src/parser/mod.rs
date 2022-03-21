@@ -1,5 +1,5 @@
 pub mod clique;
-mod dict;
+pub mod dict;
 pub mod triple;
 use crate::util::io;
 

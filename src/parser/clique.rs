@@ -14,6 +14,13 @@ impl Clique {
         }
     }
 
+    pub fn empty() -> Self {
+        Self {
+            preds: vec![],
+            nodes: vec![],
+        }
+    }
+
     pub fn merge(&mut self, c: &Clique) {
         self.preds.append(&mut c.preds.clone());
         self.nodes.append(&mut c.nodes.clone());
@@ -41,11 +48,13 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
         add_new_triple(triple, &mut target_cliques, false);
     }
 
+    // Add empty sets
     source_cliques.push(Clique::new(&vec![], &vec![]));
+    target_cliques.push(Clique::new(&vec![], &vec![]));
 
     for triple in triples {
         let mut node_found = false;
-        for clique in &source_cliques {
+        for clique in &target_cliques {
             if clique.nodes.contains(&triple.sub) {
                 node_found = true;
                 break;
@@ -53,12 +62,16 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
         }
 
         if !node_found {
-            let len = source_cliques.len();
-            source_cliques[len - 1].nodes.push(triple.sub);
+            let len = target_cliques.len();
+            target_cliques[len - 1].nodes.push(triple.sub);
         }
 
+        if triple.is_type {
+            continue;
+        };
+
         node_found = false;
-        for clique in &target_cliques {
+        for clique in &source_cliques {
             if clique.nodes.contains(&triple.obj) {
                 node_found = true;
                 break;
@@ -66,8 +79,8 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
         }
 
         if !node_found {
-            let len = target_cliques.len();
-            target_cliques[len - 1].nodes.push(triple.obj);
+            let len = source_cliques.len();
+            source_cliques[len - 1].nodes.push(triple.obj);
         }
     }
 

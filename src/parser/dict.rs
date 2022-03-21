@@ -39,3 +39,12 @@ fn gen_dict(triple_lines: &Vec<String>) -> Result<(Vec<String>, HashMap<String, 
     }
     Ok((vec, dict))
 }
+
+pub fn key_by_val(map: &HashMap<String, u32>, value: u32) -> Option<String> {
+    for (key, val) in map.iter() {
+        if *val == value {
+            return Some(key.to_string());
+        }
+    }
+    None
+}
