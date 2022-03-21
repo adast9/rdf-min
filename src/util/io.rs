@@ -1,4 +1,4 @@
-use io::{BufReader, Error, Lines};
+use io::{BufReader, Error};
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -18,12 +18,14 @@ pub fn write_lines(path: &str, vec: &Vec<String>) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn read_lines<P>(path: P) -> io::Result<Lines<BufReader<File>>>
+pub fn read_lines<P>(path: P) -> io::Result<Vec<String>>
 where
     P: AsRef<Path>,
 {
     let file = File::open(path)?;
-    Ok(BufReader::new(file).lines())
+
+    let lines: Vec<_> = BufReader::new(file).lines().collect::<Result<_, _>>()?;
+    Ok(lines)
 }
 
 pub fn file_exists(path: &str) -> bool {
