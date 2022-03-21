@@ -14,7 +14,7 @@ pub struct Triple {
 }
 
 impl Triple {
-    pub fn new(line: &String, dict: &HashMap<&str, u32>) -> Self {
+    pub fn new(line: &String, dict: &HashMap<String, u32>) -> Self {
         let line_splits: Vec<&str> = line.split(" ").collect();
         let mut is_type_pred = false;
 
@@ -35,7 +35,7 @@ impl Triple {
 
 pub fn push_triples_into_vector(
     triple_path: &str,
-    dict: &HashMap<&str, u32>,
+    dict: &HashMap<String, u32>,
 ) -> Result<Vec<Triple>, io::Error> {
     let file = File::open(triple_path)?;
     let reader = BufReader::new(file);

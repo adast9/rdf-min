@@ -5,7 +5,7 @@ mod triple;
 use self::{clique::Clique, triple::Triple};
 use std::collections::HashMap;
 
-pub fn run(
+pub fn run<'a>(
     triple_path: &str,
     dict_path: &str,
 ) -> Result<(HashMap<String, u32>, Vec<Triple>, Vec<Clique>, Vec<Clique>), std::io::Error> {
