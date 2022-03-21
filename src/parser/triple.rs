@@ -4,8 +4,6 @@ use std::io::{self, BufRead, BufReader};
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
-mod Bob {}
-
 pub struct Triple {
     pub sub: u32,
     pub pred: u32,
@@ -29,8 +27,6 @@ impl Triple {
             is_type: is_type_pred,
         }
     }
-    
-    const TYPE_STRING: &'static str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 }
 
 pub fn push_triples_into_vector(

@@ -8,7 +8,7 @@ pub struct Clique {
 
 impl Clique {
     pub fn new(preds: &Vec<u32>, nodes: &Vec<u32>) -> Self {
-        Clique {
+        Self {
             preds: preds.clone(),
             nodes: nodes.clone(),
         }
@@ -69,7 +69,6 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
             let len = target_cliques.len();
             target_cliques[len - 1].nodes.push(triple.obj);
         }
-
     }
 
     return (source_cliques, target_cliques);

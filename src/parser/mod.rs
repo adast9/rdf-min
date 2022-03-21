@@ -1,6 +1,6 @@
 pub mod clique;
 mod dict;
-mod triple;
+pub mod triple;
 
 use self::{clique::Clique, triple::Triple};
 use std::collections::HashMap;
