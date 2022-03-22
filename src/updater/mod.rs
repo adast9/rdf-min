@@ -67,8 +67,6 @@ fn get_super_nodes(
                     super_nodes.push(intersect);
                 }
             }
-
-
         }
     }
 }
