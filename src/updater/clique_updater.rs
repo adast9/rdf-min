@@ -1,8 +1,7 @@
 use crate::parser::clique::Clique;
+use crate::parser::index_map;
 use crate::parser::triple::Triple;
 use std::collections::HashMap;
-
-use super::index_map;
 
 pub struct Clique_Change {
     clique_index: usize,
