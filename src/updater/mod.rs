@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use crate::parser::{clique::Clique, index_map, meta_parser::NodeInfo, triple::Triple};
 
+use self::clique_updater::Clique_Change;
+
 mod clique_updater;
 
 pub fn run(
@@ -64,6 +66,7 @@ fn get_super_nodes(
                 if intersect.len() > 0 {
                     super_nodes.push(intersect);
                 }
+
             }
         }
     }
