@@ -21,6 +21,10 @@ pub fn get_index_map(
             let x = index_map.get_mut(&p).unwrap();
             x[1] = i;
         }
+        for p in c.nodes.clone() {
+            let x = index_map.get_mut(&p).unwrap();
+            x[1] = i;
+        }
     }
 
     return index_map;
@@ -32,21 +36,14 @@ pub fn update_index_map(
     new_index: usize,
     is_source: bool,
 ) {
+    let i = if is_source { 0 } else { 1 };
     // Update index_map
     for node in &moved_clique.nodes {
         let arr = index_map.get_mut(node).unwrap();
-        if is_source {
-            arr[0] = new_index;
-        } else {
-            arr[1] = new_index;
-        }
+        arr[i] = new_index;
     }
     for pred in &moved_clique.preds {
         let arr = index_map.get_mut(pred).unwrap();
-        if is_source {
-            arr[0] = new_index;
-        } else {
-            arr[1] = new_index;
-        }
+        arr[i] = new_index;
     }
 }

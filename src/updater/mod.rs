@@ -36,6 +36,13 @@ fn handle_insersertions(
     nodes: &mut HashMap<u32, NodeInfo>,
 ) {
     for ins in insertions {
-        let changes = clique_updater::get_changes(index_map, &ins, source_clique, target_clique);
+        let changes = clique_updater::get_changes(
+            index_map,
+            &ins,
+            source_clique,
+            target_clique,
+            nodes,
+            supernodes,
+        );
     }
 }

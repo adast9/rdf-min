@@ -4,9 +4,9 @@ use std::fs;
 use std::io;
 
 pub struct NodeInfo {
-    parent: Option<u32>,
-    incoming: Vec<Vec<u32>>,
-    outgoing: Vec<Vec<u32>>,
+    pub parent: Option<u32>,
+    pub incoming: Vec<Vec<u32>>,
+    pub outgoing: Vec<Vec<u32>>,
 }
 
 impl NodeInfo {

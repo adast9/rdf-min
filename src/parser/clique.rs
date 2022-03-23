@@ -52,35 +52,31 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
     source_cliques.push(Clique::new(&vec![], &vec![]));
     target_cliques.push(Clique::new(&vec![], &vec![]));
 
-    for triple in triples {
-        let mut node_found = false;
-        for clique in &target_cliques {
-            if clique.nodes.contains(&triple.sub) {
-                node_found = true;
+    let ids = unique_ids(triples);
+
+    for id in ids {
+        let mut id_found = false;
+        for c in &source_cliques {
+            if c.nodes.contains(&id) {
+                id_found = true;
                 break;
             }
         }
-
-        if !node_found {
-            let len = target_cliques.len();
-            target_cliques[len - 1].nodes.push(triple.sub);
-        }
-
-        if triple.is_type {
-            continue;
-        };
-
-        node_found = false;
-        for clique in &source_cliques {
-            if clique.nodes.contains(&triple.obj) {
-                node_found = true;
-                break;
-            }
-        }
-
-        if !node_found {
+        if !id_found {
             let len = source_cliques.len();
-            source_cliques[len - 1].nodes.push(triple.obj);
+            source_cliques[len - 1].nodes.push(id);
+        }
+
+        id_found = false;
+        for c in &target_cliques {
+            if c.nodes.contains(&id) {
+                id_found = true;
+                break;
+            }
+        }
+        if !id_found {
+            let len = target_cliques.len();
+            target_cliques[len - 1].nodes.push(id);
         }
     }
 
@@ -160,4 +156,19 @@ pub fn index_of_obj(clique: &Vec<Clique>, triple: &Triple) -> Option<usize> {
         }
     }
     return None;
+}
+
+fn unique_ids(triples: &Vec<Triple>) -> Vec<u32> {
+    let mut ids: Vec<u32> = Vec::new();
+
+    for triple in triples {
+        if !ids.contains(&triple.sub) {
+            ids.push(triple.sub);
+        }
+        if !ids.contains(&triple.obj) && !triple.is_type {
+            ids.push(triple.obj);
+        }
+    }
+
+    ids
 }
