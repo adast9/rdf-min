@@ -34,6 +34,7 @@ pub fn get_triples(
     update_path: &str,
     dict: &HashMap<String, u32>,
 ) -> Result<(Vec<Triple>, Vec<Triple>, Vec<Triple>), Error> {
+    // todo : multi thread
     let triples = get_current_triples(&triple_lines, dict)?;
     let (additions, deletions) = get_update_triples(update_path, dict)?;
 

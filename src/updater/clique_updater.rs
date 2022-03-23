@@ -5,9 +5,9 @@ use crate::parser::triple::Triple;
 use std::collections::HashMap;
 
 pub struct Clique_Change {
-    clique_index: usize,
-    new_nodes: Vec<u32>,
-    is_source: bool,
+    pub clique_index: usize,
+    pub new_nodes: Vec<u32>,
+    pub is_source: bool,
 }
 
 impl Clique_Change {
