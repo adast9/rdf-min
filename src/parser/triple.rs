@@ -4,6 +4,7 @@ use std::io::Error;
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
+#[derive(Clone)]
 pub struct Triple {
     pub sub: u32,
     pub pred: u32,

@@ -5,6 +5,7 @@ use std::io;
 
 pub struct NodeInfo {
     pub parent: Option<u32>,
+    // todo: incoming and outgoing should be Vec<[u32;2]>
     pub incoming: Vec<Vec<u32>>,
     pub outgoing: Vec<Vec<u32>>,
 }

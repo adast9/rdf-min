@@ -42,8 +42,10 @@ fn handle_insersertions(
             target_clique,
             nodes,
             supernodes,
+            triples,
         );
         let snodes = get_super_nodes(changes, source_clique, target_clique, index_map);
+        println!("{:?}", snodes);
     }
 }
 
