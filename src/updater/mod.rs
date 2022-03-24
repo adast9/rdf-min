@@ -52,11 +52,37 @@ fn get_super_nodes(
     source_clique: &mut Vec<Clique>,
     target_clique: &mut Vec<Clique>,
     index_map: &mut HashMap<u32, [usize; 2]>,
-) {
-    // for each change
-    for cc in changes {
-        handle_clique_change(cc, source_clique, target_clique, index_map);
+) -> Vec<Vec<u32>> {
+    if changes.len() == 1 {
+        return handle_clique_change(changes[0], source_clique, target_clique, index_map);
     }
+
+    let cc1 = handle_clique_change(changes[0], source_clique, target_clique, index_map);
+    let cc2 = handle_clique_change(changes[1], source_clique, target_clique, index_map);
+
+    let mut done: Vec<Vec<u32>> = Vec::new();
+    let mut marks: Vec<[usize; 2]> = Vec::new();
+
+    for (i, sn1) in cc1.iter().enumerate() {
+        let mut used = false;
+        for (j, sn2) in cc2.iter().enumerate() {
+            if intersects(sn1, sn2) {
+                marks.push([i, j]);
+                used = true;
+            }
+        }
+        if !used {
+            done.push(sn1.clone());
+        }
+    }
+
+    // get the unmarked supernodes first
+
+    // merge marked supernodes
+    for (i, m) in marks.iter().enumerate() {
+        //
+    }
+    return done;
 }
 
 fn handle_clique_change(
@@ -83,9 +109,18 @@ fn handle_clique_change(
         };
 
         let intersect = c1.node_intersection(&c2);
-        if intersect.len() > 0 {
+        if intersect.len() >= 2 {
             super_nodes.push(intersect);
         }
     }
     return super_nodes;
+}
+
+fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
+    for n in v1 {
+        if v2.contains(&n) {
+            return true;
+        }
+    }
+    return false;
 }
