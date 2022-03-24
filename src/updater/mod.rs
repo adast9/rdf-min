@@ -47,27 +47,29 @@ fn handle_insersertions(
     }
 }
 
-fn get_super_nodes(
+pub fn get_super_nodes(
     changes: Vec<Clique_Change>,
     source_clique: &mut Vec<Clique>,
     target_clique: &mut Vec<Clique>,
     index_map: &mut HashMap<u32, [usize; 2]>,
 ) -> Vec<Vec<u32>> {
     if changes.len() == 1 {
-        return handle_clique_change(changes[0], source_clique, target_clique, index_map);
+        return handle_clique_change(changes[0].clone(), source_clique, target_clique, index_map);
     }
 
-    let cc1 = handle_clique_change(changes[0], source_clique, target_clique, index_map);
-    let cc2 = handle_clique_change(changes[1], source_clique, target_clique, index_map);
+    let mut cc1 = handle_clique_change(changes[0].clone(), source_clique, target_clique, index_map);
+    let cc2 = handle_clique_change(changes[1].clone(), source_clique, target_clique, index_map);
 
     let mut done: Vec<Vec<u32>> = Vec::new();
     let mut marks: Vec<[usize; 2]> = Vec::new();
 
-    for (i, sn1) in cc1.iter().enumerate() {
+    // todo: Fix dirty clone - make in-place
+    for (i, sn1) in cc1.clone().iter().enumerate() {
         let mut used = false;
         for (j, sn2) in cc2.iter().enumerate() {
             if intersects(sn1, sn2) {
                 marks.push([i, j]);
+                cc1[i] = union(&sn1, sn2);
                 used = true;
             }
         }
@@ -76,12 +78,33 @@ fn get_super_nodes(
         }
     }
 
-    // get the unmarked supernodes first
-
-    // merge marked supernodes
+    // merge marked supernodes in cc1
     for (i, m) in marks.iter().enumerate() {
-        //
+        for j in 0..i {
+            if m[1] == marks[j][1] {
+                let target_i = marks[j][0];
+                cc1[target_i] = union(&cc1[target_i], &cc1[m[0]]);
+                break;
+            }
+        }
     }
+
+    // Get done supernodes from cc1
+    let mut used: Vec<usize> = Vec::new();
+    for m in marks {
+        if !used.contains(&m[1]) {
+            used.push(m[1]);
+            done.push(cc1[m[0]].clone());
+        }
+    }
+
+    // Get unmarked nodes from cc2
+    for (i, sn) in cc2.iter().enumerate() {
+        if !used.contains(&i) {
+            done.push(sn.clone());
+        }
+    }
+
     return done;
 }
 
@@ -123,4 +146,16 @@ fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
         }
     }
     return false;
+}
+
+fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
+    let mut result: Vec<u32> = v1.clone();
+
+    for e in v2 {
+        if !result.contains(e) {
+            result.push(*e);
+        }
+    }
+
+    return result;
 }

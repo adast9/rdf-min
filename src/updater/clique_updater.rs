@@ -4,6 +4,7 @@ use crate::parser::meta_parser::NodeInfo;
 use crate::parser::triple::Triple;
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct Clique_Change {
     pub clique_index: usize,
     pub new_nodes: Vec<u32>,
