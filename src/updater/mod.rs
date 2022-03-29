@@ -1,8 +1,8 @@
-use self::clique_updater::CliqueChange;
 use crate::parser::{clique::Clique, triple::Triple, Stuff};
-mod all_known;
-mod clique_updater;
+
+use self::insertions::CliqueChange;
 mod funcs;
+mod insertions;
 
 pub fn run(
     stuff: &mut Stuff,
@@ -21,7 +21,7 @@ fn handle_insersertions(
     tc: &mut Vec<Clique>,
 ) {
     for ins in insertions {
-        let changes = clique_updater::get_changes(stuff, &ins, sc, tc);
+        let changes = insertions::get_changes(stuff, &ins, sc, tc);
         let snodes = get_super_nodes(stuff, changes, sc, tc);
         println!("{:?}", snodes);
     }

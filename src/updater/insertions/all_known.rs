@@ -1,11 +1,12 @@
-use super::{
-    clique_updater::CliqueChange,
-    funcs::{
+use crate::{
+    parser::{clique::Clique, triple::Triple, Stuff},
+    updater::funcs::{
         get_node_index, merge_cliques, node_is_supernode, remove_from_supernode, to_single_node,
         update_clique_indices, update_index, update_triples_after_split,
     },
 };
-use crate::parser::{clique::Clique, triple::Triple, Stuff};
+
+use super::CliqueChange;
 
 pub fn insert(
     stuff: &mut Stuff,

@@ -237,3 +237,23 @@ fn replace_all_triple(triples: &mut Vec<Triple>, old: &u32, new: &u32) {
         }
     }
 }
+
+pub fn index_of_empty_clique(cliques: &Vec<Clique>) -> usize {
+    for (i, clique) in cliques.iter().enumerate() {
+        if clique.preds.is_empty() {
+            return i;
+        }
+    }
+    panic!("No empty clique found!!! This should never happen!");
+}
+
+pub fn add_unknown_node_and_pred_to_clique(
+    node: u32,
+    pred: u32,
+    cliques: &mut Vec<Clique>,
+    other_cliques: &mut Vec<Clique>,
+) {
+    cliques.push(Clique::new(&vec![pred], &vec![node]));
+    let empty_index = index_of_empty_clique(&other_cliques);
+    other_cliques[empty_index].add_node(&node);
+}
