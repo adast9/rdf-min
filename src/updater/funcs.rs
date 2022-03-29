@@ -48,6 +48,11 @@ pub fn remove_parent(nodes: &mut HashMap<u32, NodeInfo>, node: &u32) {
     nodes.get_mut(node).unwrap().parent = None;
 }
 
+/// Sets the parent of `node` to `new_parent`.
+pub fn new_parent(nodes: &mut HashMap<u32, NodeInfo>, node: &u32, new_parent: &u32) {
+    nodes.get_mut(node).unwrap().parent = Some(*new_parent);
+}
+
 /// Gets the index of the clique containing `node`.
 ///
 /// `i = 0` for source clique, `i = 1` for target clique.
@@ -285,4 +290,23 @@ pub fn get_key_by_value(dict: &HashMap<String, u32>, value: &u32) -> String {
         }
     }
     panic!("Value not found in dict!");
+}
+
+pub fn add_unknown_pred_to_clique(
+    stuff: &mut Stuff,
+    clique: &mut Vec<Clique>,
+    pred: &u32,
+    node: &u32,
+    i: usize,
+) -> usize {
+    let node_index = get_node_index(stuff, node, i);
+
+    if !clique[node_index].preds.is_empty() {
+        clique[node_index].preds.push(*pred);
+        return node_index;
+    }
+
+    clique[node_index].remove_node(node);
+    clique.push(Clique::new(&vec![*pred], &vec![*node]));
+    return clique.len() - 1;
 }

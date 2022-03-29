@@ -49,6 +49,12 @@ pub fn get_changes(
         return vec![];
     }
 
+    // Case: only pred_unknown
+    if sub_known && !pred_known && obj_known {
+        pred_unknown::insert(stuff, triple, sc, tc);
+        return vec![];
+    }
+
     return vec![];
 }
 
