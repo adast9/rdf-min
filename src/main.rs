@@ -9,43 +9,24 @@ const UPDATE_PATH: &str = "C:/dev/teriyaki/meta/update.nt"; // todo: get these p
 const META_PATH: &str = "C:/dev/teriyaki/meta/meta.json";
 
 fn main() {
-    let (
-        mut dict,
-        triples,
-        additions,
-        deletions,
-        mut source_clique,
-        mut target_clique,
-        index_map,
-        supernodes,
-        nodes,
-    ) = parser::run(TRIPLE_PATH, DICT_PATH, UPDATE_PATH, META_PATH).unwrap();
+    let (mut stuff, additions, deletions, mut sc, mut tc) =
+        parser::run(TRIPLE_PATH, DICT_PATH, UPDATE_PATH, META_PATH).unwrap();
 
     println!("SOURCE CLIQUES");
-    util::print::cliques_string(&source_clique, &dict);
+    util::print::cliques_string(&sc, &stuff.dict);
     println!("");
     println!("TARGET CLIQUES");
-    util::print::cliques_string(&target_clique, &dict);
+    util::print::cliques_string(&tc, &stuff.dict);
     println!("");
     println!("  |          |          |          |          |");
     println!("  v          v          v          v          v");
     println!("");
 
-    updater::run(
-        &mut dict,
-        triples,
-        additions,
-        deletions,
-        &mut source_clique,
-        &mut target_clique,
-        index_map,
-        supernodes,
-        nodes,
-    );
+    updater::run(&mut stuff, additions, deletions, &mut sc, &mut tc);
 
     println!("SOURCE CLIQUES");
-    util::print::cliques_string(&source_clique, &dict);
+    util::print::cliques_string(&sc, &stuff.dict);
     println!("");
     println!("TARGET CLIQUES");
-    util::print::cliques_string(&target_clique, &dict);
+    util::print::cliques_string(&tc, &stuff.dict);
 }
