@@ -1,5 +1,6 @@
 use crate::parser::clique::Clique;
 use crate::parser::dict::key_by_val;
+use crate::parser::triple::Triple;
 use std::collections::HashMap;
 
 pub fn cliques(cliques: &Vec<Clique>) {
@@ -21,5 +22,15 @@ pub fn cliques_string(cliques: &Vec<Clique>, dict: &HashMap<String, u32>) {
         }
 
         println!("{:?}: {:?}", pred_strings, node_strings);
+    }
+}
+
+pub fn triples_string(triples: &Vec<Triple>, dict: &HashMap<String, u32>) {
+    for triple in triples {
+        let mut sub_string: String = key_by_val(dict, triple.sub).unwrap();
+        let mut pred_string: String = key_by_val(dict, triple.pred).unwrap();
+        let mut obj_string: String = key_by_val(dict, triple.obj).unwrap();
+
+        println!("{} {} {}", sub_string, pred_string, obj_string);
     }
 }

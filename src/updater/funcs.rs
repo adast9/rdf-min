@@ -257,3 +257,32 @@ pub fn add_unknown_node_and_pred_to_clique(
     let empty_index = index_of_empty_clique(&other_cliques);
     other_cliques[empty_index].add_node(&node);
 }
+
+pub fn add_id_to_index_map(
+    index_map: &mut HashMap<u32, [usize; 2]>,
+    id: &u32,
+    sc: &Vec<Clique>,
+    tc: &Vec<Clique>,
+) {
+    let sc_index = index_of_id_in_cliques(id, sc);
+    let tc_index = index_of_id_in_cliques(id, tc);
+    index_map.insert(*id, [sc_index, tc_index]);
+}
+
+fn index_of_id_in_cliques(id: &u32, cliques: &Vec<Clique>) -> usize {
+    for (i, clique) in cliques.iter().enumerate() {
+        if clique.nodes.contains(id) || clique.preds.contains(id) {
+            return i;
+        }
+    }
+    panic!("Node not found in cliques!");
+}
+
+pub fn get_key_by_value(dict: &HashMap<String, u32>, value: &u32) -> String {
+    for (key, val) in dict {
+        if val == value {
+            return key.clone();
+        }
+    }
+    panic!("Value not found in dict!");
+}
