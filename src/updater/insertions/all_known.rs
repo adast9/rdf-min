@@ -1,8 +1,9 @@
 use crate::{
     parser::{clique::Clique, triple::Triple, Stuff},
     updater::funcs::{
-        get_node_index, merge_cliques, node_is_supernode, remove_from_supernode, to_single_node,
-        update_clique_indices, update_index, update_triples_after_split,
+        get_node_index, index_of_empty_clique, merge_cliques, node_is_supernode,
+        remove_from_supernode, to_single_node, update_clique_indices, update_index,
+        update_triples_after_split,
     },
 };
 
@@ -28,7 +29,7 @@ pub fn insert(
     }
 
     // CASE 2: If node is not in the empty set clique, merge cliques
-    if node_index != clique.len() - 1 {
+    if node_index != index_of_empty_clique(clique) {
         let change = CliqueChange::new(
             pred_index,
             if clique[node_index].nodes.len() < clique[pred_index].nodes.len() {

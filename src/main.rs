@@ -29,4 +29,8 @@ fn main() {
     println!("");
     println!("TARGET CLIQUES");
     util::print::cliques_string(&tc, &stuff.dict);
+
+    println!("");
+    println!("TRIPLES");
+    util::print::triples_string(&stuff.triples, &stuff.dict);
 }

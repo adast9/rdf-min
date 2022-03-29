@@ -1,8 +1,7 @@
-use std::collections::HashMap;
-
 use crate::parser::{clique::Clique, triple::Triple, Stuff};
 mod all_known;
 mod all_unknown;
+mod pred_unknown;
 
 #[derive(Clone)]
 pub struct CliqueChange {
@@ -27,7 +26,9 @@ pub fn get_changes(
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
 ) -> Vec<CliqueChange> {
-    let (sub_known, pred_known, obj_known) = are_they_known(&stuff.dict, triple);
+    stuff.triples.push(triple.clone());
+
+    let (sub_known, pred_known, obj_known) = are_they_known(stuff, triple);
 
     // Case: all_known
     if sub_known && pred_known && obj_known {
@@ -43,14 +44,21 @@ pub fn get_changes(
     }
 
     // Case: all_unknown
+    if !sub_known && !pred_known && !obj_known {
+        all_unknown::insert(stuff, triple, sc, tc);
+        return vec![];
+    }
 
     return vec![];
 }
 
-fn are_they_known(dict: &HashMap<String, u32>, triple: &Triple) -> (bool, bool, bool) {
-    let sub_is_known = dict.values().any(|&x| x == triple.sub);
-    let pred_is_known = dict.values().any(|&x| x == triple.pred);
-    let obj_is_known = dict.values().any(|&x| x == triple.obj);
+fn are_they_known(stuff: &Stuff, triple: &Triple) -> (bool, bool, bool) {
+    let sub_is_known =
+        stuff.supernodes.contains_key(&triple.sub) || stuff.nodes.contains_key(&triple.sub);
+    let pred_is_known =
+        stuff.supernodes.contains_key(&triple.pred) || stuff.nodes.contains_key(&triple.pred);
+    let obj_is_known =
+        stuff.supernodes.contains_key(&triple.obj) || stuff.nodes.contains_key(&triple.obj);
 
     return (sub_is_known, pred_is_known, obj_is_known);
 }

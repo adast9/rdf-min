@@ -23,6 +23,10 @@ fn handle_insersertions(
 ) {
     for ins in insertions {
         let changes = insertions::get_changes(stuff, &ins, sc, tc);
+        if changes.is_empty() {
+            continue;
+        }
+
         let snodes = get_super_nodes(stuff, changes, sc, tc);
         println!("{:?}", snodes);
     }

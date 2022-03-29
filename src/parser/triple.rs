@@ -1,4 +1,4 @@
-use crate::util::io;
+use crate::util::{generate_new_id, io};
 use std::collections::HashMap;
 use std::io::Error;
 
@@ -13,12 +13,22 @@ pub struct Triple {
 }
 
 impl Triple {
-    pub fn new(line: &String, dict: &HashMap<String, u32>) -> Self {
+    pub fn new(line: &String, dict: &mut HashMap<String, u32>) -> Self {
         let line_splits: Vec<&str> = line.split(" ").collect();
         let mut is_type_pred = false;
 
         if line_splits[1] == TYPE_STRING {
             is_type_pred = true;
+        }
+
+        if !dict.contains_key(line_splits[0]) {
+            dict.insert(line_splits[0].to_string(), generate_new_id(dict));
+        }
+        if !dict.contains_key(line_splits[1]) {
+            dict.insert(line_splits[1].to_string(), generate_new_id(dict));
+        }
+        if !dict.contains_key(line_splits[2]) {
+            dict.insert(line_splits[2].to_string(), generate_new_id(dict));
         }
 
         Triple {
@@ -33,7 +43,7 @@ impl Triple {
 pub fn get_triples(
     triple_lines: &Vec<String>,
     update_path: &str,
-    dict: &HashMap<String, u32>,
+    dict: &mut HashMap<String, u32>,
 ) -> Result<(Vec<Triple>, Vec<Triple>, Vec<Triple>), Error> {
     // todo : multi thread
     let triples = get_current_triples(&triple_lines, dict)?;
@@ -44,7 +54,7 @@ pub fn get_triples(
 
 fn get_current_triples(
     triple_lines: &Vec<String>,
-    dict: &HashMap<String, u32>,
+    dict: &mut HashMap<String, u32>,
 ) -> Result<Vec<Triple>, Error> {
     let mut triples: Vec<Triple> = Vec::new();
 
@@ -56,7 +66,7 @@ fn get_current_triples(
 
 fn get_update_triples(
     update_path: &str,
-    dict: &HashMap<String, u32>,
+    dict: &mut HashMap<String, u32>,
 ) -> Result<(Vec<Triple>, Vec<Triple>), Error> {
     // todo: validate update triples
     let mut additions: Vec<Triple> = Vec::new();
