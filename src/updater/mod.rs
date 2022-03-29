@@ -3,6 +3,7 @@ use crate::parser::{clique::Clique, triple::Triple, Stuff};
 mod all_known;
 mod clique_updater;
 mod funcs;
+mod triple_updater;
 
 pub fn run(
     stuff: &mut Stuff,
