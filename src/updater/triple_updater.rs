@@ -2,7 +2,7 @@ use std::{collections::HashMap, hash::Hash};
 
 use crate::{parser::{triple::Triple, Stuff}, util::generate_new_id};
 
-use super::funcs::{get_key_by_value, remove_parent};
+use super::funcs::{get_key_by_value, remove_parent, new_parent};
 
 pub fn update_triples(stuff: &mut Stuff, snodes: &Vec<Vec<u32>>) {
     for snode in snodes {
@@ -23,16 +23,19 @@ pub fn update_triples(stuff: &mut Stuff, snodes: &Vec<Vec<u32>>) {
         for triple in &mut stuff.triples {
             update_id(triple, snode, &mut stuff.index_map, new_key);
         }
+
+        // supernodes + nodes
         let mut m: Vec<u32> = Vec::new();
-        let mut first_sn: u32;
-        let mut is_first_sn: bool = true;
         for node in snode {
             if stuff.supernodes.contains_key(node) {
                 m.extend(stuff.supernodes.get(node).unwrap().clone());
                 for singlenode in stuff.supernodes.get(node).unwrap() {
-                    remove_parent(&mut stuff.nodes, singlenode);
+                    new_parent(&mut stuff.nodes, singlenode, &new_key);
                 }
                 stuff.supernodes.remove(node);
+            } else {
+                m.push(*node);
+                new_parent(&mut stuff.nodes, node, &new_key);
             }
         }
         stuff.supernodes.insert(new_key, m);
