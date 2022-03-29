@@ -21,6 +21,16 @@ impl Clique {
         }
     }
 
+    /// Adds `node` to the nodes of the `Clique`.
+    pub fn add_node(&mut self, node: &u32) {
+        self.nodes.push(*node);
+    }
+
+    /// Removes `node` from the nodes of the `Clique`.
+    pub fn remove_node(&mut self, node: &u32) {
+        self.nodes.retain(|n| *n != *node);
+    }
+
     pub fn merge(&mut self, c: &Clique) {
         self.preds.append(&mut c.preds.clone());
         self.nodes.append(&mut c.nodes.clone());

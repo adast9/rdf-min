@@ -1,66 +1,44 @@
-use self::clique_updater::Clique_Change;
-use crate::parser::{clique::Clique, index_map, meta_parser::NodeInfo, triple::Triple};
-use std::collections::HashMap;
+use self::clique_updater::CliqueChange;
+use crate::parser::{clique::Clique, triple::Triple, Stuff};
+mod all_known;
 mod clique_updater;
+mod funcs;
 
 pub fn run(
-    dict: &mut HashMap<String, u32>,
-    mut triples: Vec<Triple>,
+    stuff: &mut Stuff,
     insertions: Vec<Triple>,
     deletions: Vec<Triple>,
-    source_clique: &mut Vec<Clique>,
-    target_clique: &mut Vec<Clique>,
-    mut index_map: HashMap<u32, [usize; 2]>,
-    mut supernodes: HashMap<u32, Vec<u32>>,
-    mut nodes: HashMap<u32, NodeInfo>,
+    sc: &mut Vec<Clique>,
+    tc: &mut Vec<Clique>,
 ) {
-    handle_insersertions(
-        insertions,
-        &mut index_map,
-        source_clique,
-        target_clique,
-        &mut triples,
-        &mut supernodes,
-        &mut nodes,
-    );
+    handle_insersertions(stuff, insertions, sc, tc);
 }
 
 fn handle_insersertions(
+    stuff: &mut Stuff,
     insertions: Vec<Triple>,
-    index_map: &mut HashMap<u32, [usize; 2]>,
-    source_clique: &mut Vec<Clique>,
-    target_clique: &mut Vec<Clique>,
-    triples: &mut Vec<Triple>,
-    supernodes: &mut HashMap<u32, Vec<u32>>,
-    nodes: &mut HashMap<u32, NodeInfo>,
+    sc: &mut Vec<Clique>,
+    tc: &mut Vec<Clique>,
 ) {
     for ins in insertions {
-        let changes = clique_updater::get_changes(
-            index_map,
-            &ins,
-            source_clique,
-            target_clique,
-            nodes,
-            supernodes,
-            triples,
-        );
-        let snodes = get_super_nodes(changes, source_clique, target_clique, index_map);
+        let changes = clique_updater::get_changes(stuff, &ins, sc, tc);
+        let snodes = get_super_nodes(stuff, changes, sc, tc);
         println!("{:?}", snodes);
     }
 }
 
 pub fn get_super_nodes(
-    changes: Vec<Clique_Change>,
-    source_clique: &mut Vec<Clique>,
-    target_clique: &mut Vec<Clique>,
-    index_map: &mut HashMap<u32, [usize; 2]>,
+    stuff: &mut Stuff,
+    changes: Vec<CliqueChange>,
+    sc: &mut Vec<Clique>,
+    tc: &mut Vec<Clique>,
 ) -> Vec<Vec<u32>> {
     if changes.len() == 1 {
-        return handle_clique_change(changes[0].clone(), source_clique, target_clique, index_map);
+        return handle_clique_change(stuff, changes[0].clone(), sc, tc);
     }
 
-    let mut cc1 = handle_clique_change(changes[0].clone(), source_clique, target_clique, index_map);
-    let cc2 = handle_clique_change(changes[1].clone(), source_clique, target_clique, index_map);
+    let mut cc1 = handle_clique_change(stuff, changes[0].clone(), sc, tc);
+    let cc2 = handle_clique_change(stuff, changes[1].clone(), sc, tc);
 
     let mut done: Vec<Vec<u32>> = Vec::new();
     let mut marks: Vec<[usize; 2]> = Vec::new();
@@ -111,26 +89,26 @@ pub fn get_super_nodes(
 }
 
 fn handle_clique_change(
-    change: Clique_Change,
-    source_clique: &mut Vec<Clique>,
-    target_clique: &mut Vec<Clique>,
-    index_map: &mut HashMap<u32, [usize; 2]>,
+    stuff: &mut Stuff,
+    change: CliqueChange,
+    sc: &mut Vec<Clique>,
+    tc: &mut Vec<Clique>,
 ) -> Vec<Vec<u32>> {
     let mut super_nodes: Vec<Vec<u32>> = Vec::new();
 
     let c1 = if change.is_source {
-        source_clique[change.clique_index].clone()
+        sc[change.clique_index].clone()
     } else {
-        target_clique[change.clique_index].clone()
+        tc[change.clique_index].clone()
     };
 
     for node in change.new_nodes {
         let c2 = if change.is_source {
-            let index = index_map.get(&node).unwrap()[1];
-            target_clique[index].clone()
+            let index = stuff.index_map.get(&node).unwrap()[1];
+            tc[index].clone()
         } else {
-            let index = index_map.get(&node).unwrap()[0];
-            source_clique[index].clone()
+            let index = stuff.index_map.get(&node).unwrap()[0];
+            sc[index].clone()
         };
 
         let intersect = c1.node_intersection(&c2);
