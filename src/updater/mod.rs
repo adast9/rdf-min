@@ -3,6 +3,7 @@ use crate::parser::{clique::Clique, triple::Triple, Stuff};
 use self::insertions::CliqueChange;
 mod funcs;
 mod insertions;
+mod triple_updater;
 
 pub fn run(
     stuff: &mut Stuff,
