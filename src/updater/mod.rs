@@ -1,7 +1,8 @@
-use self::clique_updater::Clique_Change;
+use self::{clique_updater::Clique_Change, deletion::delete_triple};
 use crate::parser::{clique::Clique, index_map, meta_parser::NodeInfo, triple::Triple};
 use std::collections::HashMap;
 mod clique_updater;
+mod deletion;
 
 pub fn run(
     dict: &mut HashMap<String, u32>,
@@ -23,6 +24,7 @@ pub fn run(
         &mut supernodes,
         &mut nodes,
     );
+    delete_triple(&deletions, source_clique, target_clique, nodes, supernodes);
 }
 
 fn handle_insersertions(
@@ -123,4 +125,14 @@ fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
         }
     }
     return false;
+}
+
+fn do_intersection(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
+    let mut intersection: Vec<u32> = Vec::new();
+    for n in v1 {
+        if v2.contains(&n) {
+            intersection.push(*n);
+        }
+    }
+    return intersection;
 }

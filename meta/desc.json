@@ -36,7 +36,7 @@
       "parent": "p6:AT",
       "incoming": [
         ["p6:member", "p6:cs_22_dat_6_11"],
-        ["p6:hates", "p6:esben"]
+        ["p6:cooler_than", "p6:esben"]
       ],
       "outgoing": [
         ["p6:teaching_assistant", "p6:dtg"],
