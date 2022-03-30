@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, Stuff};
+use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData};
 
 /// Gets all incoming and outgoing edges for all nodes in `ids`.
 pub fn get_edges(nodes: &HashMap<u32, NodeInfo>, ids: &Vec<u32>) -> (Vec<Vec<u32>>, Vec<Vec<u32>>) {
@@ -34,7 +34,7 @@ pub fn get_edges(nodes: &HashMap<u32, NodeInfo>, ids: &Vec<u32>) -> (Vec<Vec<u32
 }
 
 /// Removes `node` from the supernode `supernode_id` and sets its parent to `None`.
-pub fn remove_from_supernode(stuff: &mut Stuff, supernode_id: u32, node: &u32) {
+pub fn remove_from_supernode(stuff: &mut MetaData, supernode_id: u32, node: &u32) {
     stuff
         .supernodes
         .get_mut(&supernode_id)
@@ -56,7 +56,7 @@ pub fn new_parent(nodes: &mut HashMap<u32, NodeInfo>, node: &u32, new_parent: &u
 /// Gets the index of the clique containing `node`.
 ///
 /// `i = 0` for source clique, `i = 1` for target clique.
-pub fn get_node_index(stuff: &mut Stuff, node: &u32, i: usize) -> usize {
+pub fn get_node_index(stuff: &mut MetaData, node: &u32, i: usize) -> usize {
     if let Some(p) = stuff.nodes.get(node).unwrap().parent {
         return stuff.index_map.get(&p).unwrap()[i];
     } else {
@@ -128,7 +128,7 @@ pub fn update_index(
 ///
 /// If the update requires new triples to be made, they are returned.
 pub fn update_triples_after_split(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     node: &u32,
     snode: &u32,
 ) -> Option<Vec<Triple>> {
@@ -212,7 +212,7 @@ fn update_triple_after_split(
 
 /// Turns a supernode with 1 element `snode` into a single node.
 pub fn to_single_node(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     clique: &mut Vec<Clique>,
     other_clique: &mut Vec<Clique>,
     snode: &u32,
@@ -302,7 +302,7 @@ pub fn get_key_by_value(dict: &HashMap<String, u32>, value: &u32) -> String {
 }
 
 pub fn add_unknown_pred_to_clique(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     clique: &mut Vec<Clique>,
     pred: &u32,
     node: &u32,

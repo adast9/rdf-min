@@ -1,9 +1,9 @@
 use crate::{
-    parser::{clique::Clique, triple::Triple, Stuff},
+    parser::{clique::Clique, triple::Triple, MetaData},
     updater::funcs::{add_unknown_pred_to_clique, update_index},
 };
 
-pub fn insert(stuff: &mut Stuff, triple: &Triple, sc: &mut Vec<Clique>, tc: &mut Vec<Clique>) {
+pub fn insert(stuff: &mut MetaData, triple: &Triple, sc: &mut Vec<Clique>, tc: &mut Vec<Clique>) {
     let sc_new = add_unknown_pred_to_clique(stuff, sc, &triple.pred, &triple.sub, 0);
     let tc_new = add_unknown_pred_to_clique(stuff, tc, &triple.pred, &triple.obj, 1);
 

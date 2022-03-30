@@ -1,9 +1,9 @@
 use crate::{
-    parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, Stuff},
+    parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData},
     updater::funcs::{add_id_to_index_map, add_unknown_node_and_pred_to_clique},
 };
 
-pub fn insert(stuff: &mut Stuff, triple: &Triple, sc: &mut Vec<Clique>, tc: &mut Vec<Clique>) {
+pub fn insert(stuff: &mut MetaData, triple: &Triple, sc: &mut Vec<Clique>, tc: &mut Vec<Clique>) {
     add_unknown_node_and_pred_to_clique(triple.sub, triple.pred, sc, tc);
     add_unknown_node_and_pred_to_clique(triple.obj, triple.pred, tc, sc);
 
