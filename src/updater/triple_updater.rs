@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use crate::{
-    parser::{clique::Clique, triple::Triple, Stuff},
+    parser::{clique::Clique, triple::Triple, MetaData},
     util::generate_new_id,
 };
 
 use super::funcs::{get_key_by_value, new_parent};
 
 pub fn update_changes(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     snodes: &Vec<Vec<u32>>,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
@@ -25,7 +25,7 @@ pub fn update_changes(
 }
 
 fn update_cliques(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
     snode: &Vec<u32>,
@@ -45,7 +45,7 @@ fn update_cliques(
 
 /// Combines all nodes in `snode` into a single supernode in `stuff.supernodes`.
 /// Also updates the `parent` field of all nodes in `snode`.
-fn update_supernodes(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
+fn update_supernodes(stuff: &mut MetaData, snode: &Vec<u32>, new_node: &u32) {
     let mut singlenodes_in_new_supernode: Vec<u32> = Vec::new();
 
     for node in snode {
@@ -70,7 +70,7 @@ fn update_supernodes(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
 }
 
 /// Removes all nodes in `snode` and inserts `new_node`.
-fn dict_new_snode(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
+fn dict_new_snode(stuff: &mut MetaData, snode: &Vec<u32>, new_node: &u32) {
     let mut snode_string = get_key_by_value(&stuff.dict, &snode[0]);
     if stuff.supernodes.contains_key(&snode[0]) {
         stuff.dict.remove(&snode_string);

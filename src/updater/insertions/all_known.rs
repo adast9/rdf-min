@@ -1,5 +1,5 @@
 use crate::{
-    parser::{clique::Clique, triple::Triple, Stuff},
+    parser::{clique::Clique, triple::Triple, MetaData},
     updater::funcs::{
         get_node_index, index_of_empty_clique, merge_cliques, node_is_in_supernode,
         node_is_supernode, remove_from_supernode, to_single_node, update_clique_indices,
@@ -10,7 +10,7 @@ use crate::{
 use super::CliqueChange;
 
 pub fn insert(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     triple: &Triple,
     clique: &mut Vec<Clique>,
     other_clique: &mut Vec<Clique>,
