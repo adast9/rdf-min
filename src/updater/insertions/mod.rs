@@ -100,33 +100,6 @@ pub fn get_changes(
     }
 
     return changes;
-
-    // // Case: all_known
-    // if sub_known && pred_known && obj_known {
-    //     let mut changes: Vec<CliqueChange> = Vec::new();
-    //     if let Some(change) = all_known::insert(stuff, triple, sc, tc, true) {
-    //         changes.push(change);
-    //     }
-    //     if let Some(change) = all_known::insert(stuff, triple, tc, sc, false) {
-    //         changes.push(change);
-    //     }
-
-    //     return changes;
-    // }
-
-    // // Case: all_unknown
-    // if !sub_known && !pred_known && !obj_known {
-    //     all_unknown::insert(stuff, triple, sc, tc);
-    //     return vec![];
-    // }
-
-    // // Case: only pred_unknown
-    // if sub_known && !pred_known && obj_known {
-    //     pred_unknown::insert(stuff, triple, sc, tc);
-    //     return vec![];
-    // }
-
-    // return vec![];
 }
 
 fn are_they_known(stuff: &Stuff, triple: &Triple) -> (bool, bool, bool) {
