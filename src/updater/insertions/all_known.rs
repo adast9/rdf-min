@@ -51,7 +51,6 @@ pub fn insert(
         clique[pred_index].add_node(node);
         clique[node_index].remove_node(node);
 
-        println!("looking for node {}", node);
         update_index(&mut stuff.index_map, node, pred_index, i);
 
         return Some(CliqueChange::new(pred_index, vec![*node], is_source));
