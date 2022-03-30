@@ -1,67 +1,142 @@
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 
-use crate::{parser::{triple::Triple, Stuff}, util::generate_new_id};
+use crate::{
+    parser::{clique::Clique, triple::Triple, Stuff},
+    util::generate_new_id,
+};
 
-use super::funcs::{get_key_by_value, remove_parent, new_parent};
+use super::funcs::{get_key_by_value, new_parent};
 
-pub fn update_triples(stuff: &mut Stuff, snodes: &Vec<Vec<u32>>) {
+pub fn update_changes(
+    stuff: &mut Stuff,
+    snodes: &Vec<Vec<u32>>,
+    sc: &mut Vec<Clique>,
+    tc: &mut Vec<Clique>,
+) {
     for snode in snodes {
-        let new_key = generate_new_id(&stuff.dict);
+        let new_node = generate_new_id(&stuff.dict);
 
-        // dict
-        let mut new_dict_key = String::new();
-        for node in snode {
-            let dict_key = get_key_by_value(&stuff.dict, node);
-            new_dict_key.push_str(&dict_key);
-            new_dict_key.push_str("_");
-            
-            stuff.dict.remove(&dict_key);
-        }
-        stuff.dict.insert(new_dict_key, new_key);
-
-        // triples + index_map
-        for triple in &mut stuff.triples {
-            update_id(triple, snode, &mut stuff.index_map, new_key);
-        }
-
-        // supernodes + nodes
-        let mut m: Vec<u32> = Vec::new();
-        for node in snode {
-            if stuff.supernodes.contains_key(node) {
-                m.extend(stuff.supernodes.get(node).unwrap().clone());
-                for singlenode in stuff.supernodes.get(node).unwrap() {
-                    new_parent(&mut stuff.nodes, singlenode, &new_key);
-                }
-                stuff.supernodes.remove(node);
-            } else {
-                m.push(*node);
-                new_parent(&mut stuff.nodes, node, &new_key);
-            }
-        }
-        stuff.supernodes.insert(new_key, m);
+        dict_new_snode(stuff, snode, &new_node);
+        update_triples(&mut stuff.triples, snode, &new_node);
+        update_index_map(&mut stuff.index_map, snode, &new_node);
+        update_supernodes(stuff, snode, &new_node);
+        update_cliques(stuff, sc, tc, snode, &new_node);
     }
 }
 
-fn update_id(triple: &mut Triple, snode: &Vec<u32>, index_map: &mut HashMap<u32, [usize; 2]>, new_key: u32) {
-    let mut value: [usize; 2] = [0, 0];
-    let mut is_inserted = false;
+fn update_cliques(
+    stuff: &mut Stuff,
+    sc: &mut Vec<Clique>,
+    tc: &mut Vec<Clique>,
+    snode: &Vec<u32>,
+    new_node: &u32,
+) {
+    let sc_index = stuff.index_map.get(new_node).unwrap()[0];
+    let tc_index = stuff.index_map.get(new_node).unwrap()[1];
+
     for node in snode {
-        if &triple.sub == node { 
-            is_inserted = true;
-
-            triple.sub = new_key; 
-
-            value = index_map.get(node).unwrap().clone();
-            index_map.remove(node);
-        } 
-        if &triple.obj == node { 
-            is_inserted = true;
-
-            triple.obj = new_key;
-
-            value = index_map.get(node).unwrap().clone();
-            index_map.remove(node);
-        } 
-        if is_inserted == true { index_map.insert(new_key, value); }
+        sc[sc_index].nodes.retain(|x| *x != *node);
+        tc[tc_index].nodes.retain(|x| *x != *node);
     }
+
+    sc[sc_index].nodes.push(*new_node);
+    tc[tc_index].nodes.push(*new_node);
+}
+
+/// Combines all nodes in `snode` into a single supernode in `stuff.supernodes`.
+/// Also updates the `parent` field of all nodes in `snode`.
+fn update_supernodes(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
+    let mut singlenodes_in_new_supernode: Vec<u32> = Vec::new();
+
+    for node in snode {
+        if stuff.supernodes.contains_key(node) {
+            let supernode = stuff.supernodes.get(node).unwrap();
+            singlenodes_in_new_supernode.extend(supernode);
+
+            for singlenode in supernode {
+                new_parent(&mut stuff.nodes, singlenode, &new_node);
+            }
+
+            stuff.supernodes.remove(node);
+        } else {
+            singlenodes_in_new_supernode.push(*node);
+            new_parent(&mut stuff.nodes, node, &new_node);
+        }
+    }
+
+    stuff
+        .supernodes
+        .insert(*new_node, singlenodes_in_new_supernode);
+}
+
+/// Removes all nodes in `snode` and inserts `new_node`.
+fn dict_new_snode(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
+    let mut snode_string = get_key_by_value(&stuff.dict, &snode[0]);
+    if stuff.supernodes.contains_key(&snode[0]) {
+        stuff.dict.remove(&snode_string);
+    }
+
+    snode_string = remove_angle_bracket_at_end(&snode_string).to_string();
+
+    for node in snode.iter().skip(1) {
+        let node_string = get_key_by_value(&stuff.dict, node);
+        snode_string.push_str("_");
+        snode_string.push_str(&get_name(&node_string));
+        if stuff.supernodes.contains_key(node) {
+            stuff.dict.remove(&node_string);
+        }
+    }
+
+    snode_string.push_str(">");
+    stuff.dict.insert(snode_string.clone(), *new_node);
+}
+
+fn get_name(string: &String) -> String {
+    let mut name = String::new();
+    let mut chars = string.chars();
+
+    while let Some(c) = chars.next_back() {
+        if c == '/' {
+            break;
+        }
+        if c == '>' {
+            continue;
+        }
+
+        name = c.to_string() + &name;
+    }
+
+    return name;
+}
+
+fn remove_angle_bracket_at_end(string: &String) -> &str {
+    let mut chars = string.chars();
+    chars.next_back();
+
+    return chars.as_str();
+}
+
+/// Replaces all occurences of a node in `snode`  with `new_node` in `triples`.
+fn update_triples(triples: &mut Vec<Triple>, snode: &Vec<u32>, new_node: &u32) {
+    for triple in triples {
+        for node in snode {
+            if &triple.obj == node {
+                triple.obj = *new_node;
+            }
+            if &triple.sub == node {
+                triple.sub = *new_node;
+            }
+        }
+    }
+}
+
+/// Deletes all occurences of a node in `snode`  in `index_map`. `new_node` is inserted instead.
+fn update_index_map(index_map: &mut HashMap<u32, [usize; 2]>, snode: &Vec<u32>, new_node: &u32) {
+    let val = index_map.get(&snode[0]).unwrap().clone();
+
+    for node in snode {
+        index_map.remove(node);
+    }
+
+    index_map.insert(*new_node, val);
 }

@@ -1,14 +1,14 @@
 use crate::parser::{clique::Clique, triple::Triple, Stuff};
 
-use self::insertions::CliqueChange;
-mod funcs;
+use self::{insertions::CliqueChange, triple_updater::update_changes};
+pub mod funcs;
 mod insertions;
 mod triple_updater;
 
 pub fn run(
     stuff: &mut Stuff,
     insertions: Vec<Triple>,
-    deletions: Vec<Triple>,
+    _deletions: Vec<Triple>,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
 ) {
@@ -23,12 +23,13 @@ fn handle_insersertions(
 ) {
     for ins in insertions {
         let changes = insertions::get_changes(stuff, &ins, sc, tc);
+
         if changes.is_empty() {
             continue;
         }
 
         let snodes = get_super_nodes(stuff, changes, sc, tc);
-        println!("{:?}", snodes);
+        update_changes(stuff, &snodes, sc, tc);
     }
 }
 
@@ -142,6 +143,7 @@ fn do_intersection(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
     }
     return intersection;
 }
+
 fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
     let mut result: Vec<u32> = v1.clone();
 

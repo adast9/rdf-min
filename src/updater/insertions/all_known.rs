@@ -1,9 +1,9 @@
 use crate::{
     parser::{clique::Clique, triple::Triple, Stuff},
     updater::funcs::{
-        get_node_index, index_of_empty_clique, merge_cliques, node_is_supernode,
-        remove_from_supernode, to_single_node, update_clique_indices, update_index,
-        update_triples_after_split,
+        get_node_index, index_of_empty_clique, merge_cliques, node_is_in_supernode,
+        node_is_supernode, remove_from_supernode, to_single_node, update_clique_indices,
+        update_index, update_triples_after_split,
     },
 };
 
@@ -47,16 +47,18 @@ pub fn insert(
     }
 
     // CASE 3: If node is not a supernode, but in the empty set clique, move node to pred clique
-    if !node_is_supernode(node, &mut stuff.supernodes) {
+    if !node_is_in_supernode(node, &mut stuff.supernodes) {
         clique[pred_index].add_node(node);
         clique[node_index].remove_node(node);
 
+        println!("looking for node {}", node);
         update_index(&mut stuff.index_map, node, pred_index, i);
 
         return Some(CliqueChange::new(pred_index, vec![*node], is_source));
     }
 
     // CASE 4: If node is a supernode AND in the empty set clique, split node from its supernode
+    // todo: remove the split node's name from the supernode
     let snode = stuff.nodes.get(node).unwrap().parent.unwrap();
 
     remove_from_supernode(stuff, snode, node);

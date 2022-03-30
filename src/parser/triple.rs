@@ -1,6 +1,8 @@
+use crate::updater::funcs::get_key_by_value;
 use crate::util::{generate_new_id, io};
 use std::collections::HashMap;
 use std::io::Error;
+use std::path::PathBuf;
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
@@ -38,11 +40,27 @@ impl Triple {
             is_type: is_type_pred,
         }
     }
+
+    pub fn to_string(&self, dict: &HashMap<String, u32>) -> String {
+        let sub = get_key_by_value(dict, &self.sub);
+        let pred = get_key_by_value(dict, &self.pred);
+        let obj = get_key_by_value(dict, &self.obj);
+
+        let mut line = String::new();
+        line.push_str(&sub);
+        line.push(' ');
+        line.push_str(&pred);
+        line.push(' ');
+        line.push_str(&obj);
+        line.push_str(" .");
+
+        return line;
+    }
 }
 
 pub fn get_triples(
     triple_lines: &Vec<String>,
-    update_path: &str,
+    update_path: &PathBuf,
     dict: &mut HashMap<String, u32>,
 ) -> Result<(Vec<Triple>, Vec<Triple>, Vec<Triple>), Error> {
     // todo : multi thread
@@ -65,14 +83,14 @@ fn get_current_triples(
 }
 
 fn get_update_triples(
-    update_path: &str,
+    update_path: &PathBuf,
     dict: &mut HashMap<String, u32>,
 ) -> Result<(Vec<Triple>, Vec<Triple>), Error> {
     // todo: validate update triples
     let mut additions: Vec<Triple> = Vec::new();
     let mut deletions: Vec<Triple> = Vec::new();
 
-    for l in io::read_lines(update_path)? {
+    for l in io::read_lines(&update_path)? {
         // if l starts with '-', then it is a deletion
         let ch = l.chars().next().unwrap();
 

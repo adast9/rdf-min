@@ -3,7 +3,7 @@ pub mod dict;
 pub mod index_map;
 pub mod meta_parser;
 pub mod triple;
-use crate::util::io;
+use crate::{util::io, Config};
 
 use self::{
     clique::Clique,
@@ -11,7 +11,7 @@ use self::{
     meta_parser::{parse_meta, NodeInfo},
     triple::Triple,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 pub struct Stuff {
     pub dict: HashMap<String, u32>,
@@ -40,18 +40,15 @@ impl Stuff {
 }
 
 pub fn run(
-    triple_path: &str,
-    dict_path: &str,
-    update_path: &str,
-    meta_path: &str,
+    config: &Config,
 ) -> Result<(Stuff, Vec<Triple>, Vec<Triple>, Vec<Clique>, Vec<Clique>), std::io::Error> {
-    let triple_lines = io::read_lines(triple_path)?;
-    let mut dict = dict::parse_dict(&triple_lines, dict_path)?;
+    let triple_lines = io::read_lines(&config.dataset_path)?;
+    let mut dict = dict::parse_dict(&triple_lines, &config.meta_folder_path.join("dict"))?;
     let (triples, additions, deletions) =
-        triple::get_triples(&triple_lines, update_path, &mut dict)?;
+        triple::get_triples(&triple_lines, &config.update_path, &mut dict)?;
     let (source_cliques, target_cliques) = clique::create_cliques(&triples);
     let index_map = get_index_map(&source_cliques, &target_cliques);
-    let (supernodes, nodes) = parse_meta(meta_path)?;
+    let (supernodes, nodes) = parse_meta(&config.meta_folder_path.join("meta.json"))?;
 
     let stuff = Stuff::new(dict, triples, index_map, supernodes, nodes);
 

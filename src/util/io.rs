@@ -1,11 +1,17 @@
 use io::{BufReader, Error};
+use std::collections::HashMap;
+use std::fs::remove_file;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::path::PathBuf;
 
-pub fn write_lines(path: &str, vec: &Vec<String>) -> Result<(), Error> {
+use crate::parser::dict::key_by_val;
+use crate::parser::triple::Triple;
+
+pub fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     let mut file = OpenOptions::new()
         .create(true)
         .write(true)
@@ -18,7 +24,35 @@ pub fn write_lines(path: &str, vec: &Vec<String>) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn read_lines<P>(path: P) -> io::Result<Vec<String>>
+pub fn write_triples(
+    path: &PathBuf,
+    triples: &Vec<Triple>,
+    dict: &HashMap<String, u32>,
+) -> Result<(), Error> {
+    if path.exists() {
+        remove_file(path)?;
+    }
+
+    let mut triple_strings: Vec<String> = Vec::new();
+
+    for triple in triples {
+        let sub_string: String = key_by_val(dict, triple.sub).unwrap();
+        let pred_string: String = key_by_val(dict, triple.pred).unwrap();
+        let obj_string: String = key_by_val(dict, triple.obj).unwrap();
+
+        let triple_string = format!("{} {} {} .", sub_string, pred_string, obj_string);
+
+        if !triple_strings.contains(&triple_string) {
+            triple_strings.push(triple_string);
+        }
+    }
+
+    write_lines(path, &triple_strings)?;
+
+    Ok(())
+}
+
+pub fn read_lines<P>(path: &P) -> io::Result<Vec<String>>
 where
     P: AsRef<Path>,
 {
@@ -28,6 +62,6 @@ where
     Ok(lines)
 }
 
-pub fn file_exists(path: &str) -> bool {
-    return Path::new(path).exists();
+pub fn file_exists(path: &PathBuf) -> bool {
+    return path.exists();
 }

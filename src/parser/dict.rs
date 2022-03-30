@@ -1,10 +1,11 @@
 use crate::util::io;
 use std::collections::HashMap;
 use std::io::Error;
+use std::path::PathBuf;
 
 pub fn parse_dict(
     triple_lines: &Vec<String>,
-    dict_path: &str,
+    dict_path: &PathBuf,
 ) -> Result<HashMap<String, u32>, Error> {
     // todo: handle blank nodes with a queue
 
@@ -17,7 +18,7 @@ pub fn parse_dict(
     }
 }
 
-fn read_dict(dict_path: &str) -> Result<HashMap<String, u32>, Error> {
+fn read_dict(dict_path: &PathBuf) -> Result<HashMap<String, u32>, Error> {
     let mut dict: HashMap<String, u32> = HashMap::new();
     for l in io::read_lines(dict_path)? {
         dict.insert(l, dict.len() as u32);

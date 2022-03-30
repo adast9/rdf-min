@@ -72,6 +72,15 @@ pub fn node_is_supernode(node: &u32, supernodes: &mut HashMap<u32, Vec<u32>>) ->
     return false;
 }
 
+pub fn node_is_in_supernode(node: &u32, supernodes: &mut HashMap<u32, Vec<u32>>) -> bool {
+    for sn in supernodes.values() {
+        if sn.contains(node) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /// Merges the contents of two cliques by their indices.
 ///
 /// Merges into the `i1` clique and leaves `i2` empty.
@@ -155,13 +164,13 @@ fn update_triple_after_split(
 
     // When the supernode is the subject
     if triple.sub == *snode {
-        let (single_inc, single_out) = get_edges(&nodes, &vec![*node]);
+        let (_single_inc, single_out) = get_edges(&nodes, &vec![*node]);
 
         if !single_out.contains(&vec![triple.pred, triple.obj]) {
             return None;
         }
 
-        let (super_inc, super_out) = get_edges(&nodes, supernodes.get(snode).unwrap());
+        let (_super_inc, super_out) = get_edges(&nodes, supernodes.get(snode).unwrap());
 
         if super_out.contains(&vec![triple.pred, triple.obj]) {
             Some(Triple {
@@ -177,19 +186,19 @@ fn update_triple_after_split(
     }
     // When the supernode is the object
     else if triple.obj == *snode {
-        let (single_inc, single_out) = get_edges(nodes, &vec![*node]);
+        let (single_inc, _single_out) = get_edges(nodes, &vec![*node]);
 
         if !single_inc.contains(&vec![triple.pred, triple.sub]) {
             return None;
         }
 
-        let (super_inc, super_out) = get_edges(nodes, supernodes.get(snode).unwrap());
+        let (super_inc, _super_out) = get_edges(nodes, supernodes.get(snode).unwrap());
 
         if super_inc.contains(&vec![triple.pred, triple.sub]) {
             Some(Triple {
                 sub: triple.sub,
                 pred: triple.pred,
-                obj: *snode,
+                obj: *node,
                 is_type: triple.is_type,
             })
         } else {
@@ -245,11 +254,11 @@ fn replace_all_triple(triples: &mut Vec<Triple>, old: &u32, new: &u32) {
 
 pub fn index_of_empty_clique(cliques: &Vec<Clique>) -> usize {
     for (i, clique) in cliques.iter().enumerate() {
-        if clique.preds.is_empty() {
+        if clique.preds.is_empty() && !clique.nodes.is_empty() {
             return i;
         }
     }
-    panic!("No empty clique found!!! This should never happen!");
+    panic!("Trouble finding the empty-set clique. This might be able to happen in rare cases. Ask Esben");
 }
 
 pub fn add_unknown_node_and_pred_to_clique(
