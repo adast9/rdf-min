@@ -86,7 +86,6 @@ fn get_update_triples(
     update_path: &PathBuf,
     dict: &mut HashMap<String, u32>,
 ) -> Result<(Vec<Triple>, Vec<Triple>), Error> {
-    // todo: validate update triples
     let mut additions: Vec<Triple> = Vec::new();
     let mut deletions: Vec<Triple> = Vec::new();
 
