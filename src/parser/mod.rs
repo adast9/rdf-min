@@ -43,7 +43,7 @@ pub fn run(
     config: &Config,
 ) -> Result<(MetaData, Vec<Triple>, Vec<Triple>, Vec<Clique>, Vec<Clique>), std::io::Error> {
     let triple_lines = io::read_lines(&config.dataset_path)?;
-    let mut dict = dict::parse_dict(&triple_lines, &config.meta_folder_path.join("dict"))?;
+    let mut dict = dict::parse_dict(&triple_lines, &config)?;
     let (triples, additions, deletions) =
         triple::get_triples(&triple_lines, &config.update_path, &mut dict)?;
     let (source_cliques, target_cliques) = clique::create_cliques(&triples);
