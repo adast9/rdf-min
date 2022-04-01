@@ -70,8 +70,8 @@ impl Dict {
         let mut vec: Vec<String> = Vec::new();
         vec.resize(self.total_len(), String::new());
 
-        for (k, v) in self.dict {
-            vec[v as usize] = k;
+        for (k, v) in &self.dict {
+            vec[*v as usize - 1] = k.to_string();
         }
         return vec;
     }
