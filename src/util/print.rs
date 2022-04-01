@@ -1,29 +1,28 @@
 use crate::parser::clique::Clique;
-use crate::parser::dict::key_by_val;
+use crate::parser::dict::Dict;
 use crate::parser::triple::Triple;
-use std::collections::HashMap;
 
-pub fn cliques_string(cliques: &Vec<Clique>, dict: &HashMap<String, u32>) {
+pub fn cliques_string(cliques: &Vec<Clique>, dict: &Dict) {
     for clique in cliques {
         let mut pred_strings: Vec<String> = Vec::new();
         let mut node_strings: Vec<String> = Vec::new();
 
         for pred in &clique.preds {
-            pred_strings.push(key_by_val(dict, *pred).unwrap())
+            pred_strings.push(dict.key_by_value(pred).unwrap());
         }
         for node in &clique.nodes {
-            node_strings.push(key_by_val(dict, *node).unwrap())
+            node_strings.push(dict.key_by_value(node).unwrap());
         }
 
         println!("{:?}: {:?}", pred_strings, node_strings);
     }
 }
 
-pub fn triples_string(triples: &Vec<Triple>, dict: &HashMap<String, u32>) {
+pub fn triples_string(triples: &Vec<Triple>, dict: &Dict) {
     for triple in triples {
-        let sub_string: String = key_by_val(dict, triple.sub).unwrap();
-        let pred_string: String = key_by_val(dict, triple.pred).unwrap();
-        let obj_string: String = key_by_val(dict, triple.obj).unwrap();
+        let sub_string = dict.key_by_value(&triple.sub).unwrap();
+        let pred_string = dict.key_by_value(&triple.pred).unwrap();
+        let obj_string = dict.key_by_value(&triple.obj).unwrap();
 
         println!("{} {} {}", sub_string, pred_string, obj_string);
     }

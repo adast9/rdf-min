@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData};
+use crate::parser::{clique::Clique, dict::Dict, meta_parser::NodeInfo, triple::Triple, MetaData};
 
 /// Gets all incoming and outgoing edges for all nodes in `ids`.
 pub fn get_edges(nodes: &HashMap<u32, NodeInfo>, ids: &Vec<u32>) -> (Vec<Vec<u32>>, Vec<Vec<u32>>) {
@@ -292,15 +292,6 @@ fn index_of_id_in_cliques(id: &u32, cliques: &Vec<Clique>) -> usize {
     panic!("Node not found in cliques!");
 }
 
-pub fn get_key_by_value(dict: &HashMap<String, u32>, value: &u32) -> String {
-    for (key, val) in dict {
-        if val == value {
-            return key.clone();
-        }
-    }
-    panic!("Value not found in dict!");
-}
-
 pub fn add_unknown_pred_to_clique(
     stuff: &mut MetaData,
     clique: &mut Vec<Clique>,
@@ -318,4 +309,38 @@ pub fn add_unknown_pred_to_clique(
     clique[node_index].remove_node(node);
     clique.push(Clique::new(&vec![*pred], &vec![*node]));
     return clique.len() - 1;
+}
+
+pub fn get_name(string: &String) -> String {
+    let mut name = String::new();
+    let mut chars = string.chars();
+
+    while let Some(c) = chars.next_back() {
+        if c == '/' {
+            break;
+        }
+        if c == '>' {
+            continue;
+        }
+
+        name = c.to_string() + &name;
+    }
+
+    return name;
+}
+
+pub fn split_snode_name(dict: &mut Dict, snode: &u32, node: &u32) {
+    let mut snode_string = dict.key_by_value(snode).unwrap();
+    let node_string = get_name(&dict.key_by_value(node).unwrap());
+
+    let index = snode_string.find(&node_string).unwrap();
+
+    let old_key = snode_string.clone();
+    if (index + node_string.len() + 1 == snode_string.len()) {
+        snode_string.replace_range((index - 1..index + node_string.len()), "");
+    } else {
+        snode_string.replace_range((index..index + node_string.len() + 1), "");
+    }
+
+    dict.update_key(&snode_string, &old_key);
 }

@@ -1,9 +1,9 @@
 use crate::{
     parser::{clique::Clique, triple::Triple, MetaData},
     updater::funcs::{
-        get_node_index, index_of_empty_clique, merge_cliques, node_is_in_supernode,
-        node_is_supernode, remove_from_supernode, to_single_node, update_clique_indices,
-        update_index, update_triples_after_split,
+        get_name, get_node_index, index_of_empty_clique, merge_cliques, node_is_in_supernode,
+        node_is_supernode, remove_from_supernode, split_snode_name, to_single_node,
+        update_clique_indices, update_index, update_triples_after_split,
     },
 };
 
@@ -59,6 +59,8 @@ pub fn insert(
     // CASE 4: If node is a supernode AND in the empty set clique, split node from its supernode
     // todo: remove the split node's name from the supernode
     let snode = stuff.nodes.get(node).unwrap().parent.unwrap();
+
+    split_snode_name(&mut stuff.dict, &snode, node);
 
     remove_from_supernode(stuff, snode, node);
     clique[pred_index].add_node(node);

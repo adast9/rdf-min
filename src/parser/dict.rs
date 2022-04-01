@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 use std::io::Error;
 use std::path::PathBuf;
 
-struct Dict {
+pub struct Dict {
     dict: HashMap<String, u32>,
     queue: VecDeque<u32>,
 }
@@ -18,7 +18,7 @@ impl Dict {
         };
     }
 
-    pub fn add(&mut self, key: &String) -> u32 {
+    pub fn add2(&mut self, key: &String) -> u32 {
         if key.is_empty() {
             let id = self.next_id();
             self.queue.push_back(id);
@@ -26,9 +26,6 @@ impl Dict {
         }
 
         if let Some(id) = self.queue.pop_front() {
-            if !self.contains(key) {
-                panic!("[add] Key {} not found in dict.", key);
-            };
             self.dict.insert(key.to_string(), id);
             return id;
         } else {
@@ -38,8 +35,8 @@ impl Dict {
         }
     }
 
-    pub fn remove(&mut self, key: &String) {
-        if !self.contains(key) {
+    pub fn remove2(&mut self, key: &String) {
+        if !self.contains2(key) {
             panic!("[remove] Key {} not found in dict.", key);
         };
         let id = self.dict.get(key).unwrap().clone();
@@ -47,8 +44,26 @@ impl Dict {
         self.queue.push_back(id);
     }
 
-    pub fn contains(&self, key: &String) -> bool {
+    pub fn contains2(&self, key: &String) -> bool {
         return self.dict.contains_key(key);
+    }
+
+    pub fn get2(&self, key: &String) -> Option<&u32> {
+        return self.dict.get(key);
+    }
+
+    pub fn key_by_value(&self, value: &u32) -> Option<String> {
+        return self
+            .dict
+            .iter()
+            .find(|(_, v)| **v == *value)
+            .map(|(k, _)| k.to_string());
+    }
+
+    pub fn update_key(&mut self, new: &String, old: &String) {
+        let val = self.get2(old).unwrap().clone();
+        self.dict.remove(old);
+        self.dict.insert(new.to_string(), val);
     }
 
     fn next_id(&self) -> u32 {
@@ -66,47 +81,23 @@ pub fn parse_dict(triple_lines: &Vec<String>, config: &Config) -> Result<Dict, E
 }
 
 fn read_dict(dict_path: &PathBuf) -> Result<Dict, Error> {
-    let dict = Dict::new();
+    let mut dict = Dict::new();
     for l in io::read_lines(dict_path)? {
-        dict.add(&l);
+        dict.add2(&l);
     }
     Ok(dict)
 }
 
 fn gen_dict(triple_lines: &Vec<String>) -> Result<Dict, Error> {
-    let dict = Dict::new();
+    let mut dict = Dict::new();
     for l in triple_lines {
         let v: Vec<&str> = l.split(' ').collect();
         for i in 0..3 {
             let str = v[i].to_string();
-            if !dict.contains(&str) {
-                dict.add(&str);
+            if !dict.contains2(&str) {
+                dict.add2(&str);
             }
         }
     }
     Ok(dict)
-}
-
-// fn gen_dict(triple_lines: &Vec<String>) -> Result<(Vec<String>, HashMap<String, u32>), Error> {
-//     let mut vec: Vec<String> = Vec::new();
-//     let mut dict: HashMap<String, u32> = HashMap::new();
-//     for l in triple_lines {
-//         let v: Vec<&str> = l.split(' ').collect();
-//         for i in 0..3 {
-//             if !dict.contains_key(v[i]) {
-//                 dict.insert(v[i].to_string(), dict.len() as u32);
-//                 vec.push(v[i].to_string());
-//             }
-//         }
-//     }
-//     Ok((vec, dict))
-// }
-
-pub fn key_by_val(map: &HashMap<String, u32>, value: u32) -> Option<String> {
-    for (key, val) in map.iter() {
-        if *val == value {
-            return Some(key.to_string());
-        }
-    }
-    None
 }

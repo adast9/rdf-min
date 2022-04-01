@@ -1,5 +1,4 @@
 use io::{BufReader, Error};
-use std::collections::HashMap;
 use std::fs::remove_file;
 use std::fs::File;
 use std::fs::OpenOptions;
@@ -8,7 +7,7 @@ use std::io::{self, BufRead};
 use std::path::Path;
 use std::path::PathBuf;
 
-use crate::parser::dict::key_by_val;
+use crate::parser::dict::Dict;
 use crate::parser::triple::Triple;
 
 pub fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
@@ -24,11 +23,7 @@ pub fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn write_triples(
-    path: &PathBuf,
-    triples: &Vec<Triple>,
-    dict: &HashMap<String, u32>,
-) -> Result<(), Error> {
+pub fn write_triples(path: &PathBuf, triples: &Vec<Triple>, dict: &Dict) -> Result<(), Error> {
     if path.exists() {
         remove_file(path)?;
     }
@@ -36,9 +31,9 @@ pub fn write_triples(
     let mut triple_strings: Vec<String> = Vec::new();
 
     for triple in triples {
-        let sub_string: String = key_by_val(dict, triple.sub).unwrap();
-        let pred_string: String = key_by_val(dict, triple.pred).unwrap();
-        let obj_string: String = key_by_val(dict, triple.obj).unwrap();
+        let sub_string = dict.key_by_value(&triple.sub).unwrap();
+        let pred_string = dict.key_by_value(&triple.pred).unwrap();
+        let obj_string = dict.key_by_value(&triple.obj).unwrap();
 
         let triple_string = format!("{} {} {} .", sub_string, pred_string, obj_string);
 

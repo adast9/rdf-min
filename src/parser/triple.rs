@@ -1,8 +1,9 @@
-use crate::updater::funcs::get_key_by_value;
-use crate::util::{generate_new_id, io};
+use crate::util::io;
 use std::collections::HashMap;
 use std::io::Error;
 use std::path::PathBuf;
+
+use super::dict::Dict;
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
@@ -15,7 +16,7 @@ pub struct Triple {
 }
 
 impl Triple {
-    pub fn new(line: &String, dict: &mut HashMap<String, u32>) -> Self {
+    pub fn new(line: &String, dict: &mut Dict) -> Self {
         let line_splits: Vec<&str> = line.split(" ").collect();
         let mut is_type_pred = false;
 
@@ -23,28 +24,32 @@ impl Triple {
             is_type_pred = true;
         }
 
-        if !dict.contains_key(line_splits[0]) {
-            dict.insert(line_splits[0].to_string(), generate_new_id(dict));
+        let sub_str = String::from(line_splits[0]);
+        let pred_str = String::from(line_splits[1]);
+        let obj_str = String::from(line_splits[2]);
+
+        if !dict.contains2(&sub_str) {
+            dict.add2(&sub_str);
         }
-        if !dict.contains_key(line_splits[1]) {
-            dict.insert(line_splits[1].to_string(), generate_new_id(dict));
+        if !dict.contains2(&pred_str) {
+            dict.add2(&pred_str);
         }
-        if !dict.contains_key(line_splits[2]) {
-            dict.insert(line_splits[2].to_string(), generate_new_id(dict));
+        if !dict.contains2(&obj_str) {
+            dict.add2(&obj_str);
         }
 
         Triple {
-            sub: *dict.get(line_splits[0]).unwrap(),
-            pred: *dict.get(line_splits[1]).unwrap(),
-            obj: *dict.get(line_splits[2]).unwrap(),
+            sub: *dict.get2(&sub_str).unwrap(),
+            pred: *dict.get2(&pred_str).unwrap(),
+            obj: *dict.get2(&obj_str).unwrap(),
             is_type: is_type_pred,
         }
     }
 
-    pub fn to_string(&self, dict: &HashMap<String, u32>) -> String {
-        let sub = get_key_by_value(dict, &self.sub);
-        let pred = get_key_by_value(dict, &self.pred);
-        let obj = get_key_by_value(dict, &self.obj);
+    pub fn to_string(&self, dict: &Dict) -> String {
+        let sub = dict.key_by_value(&self.sub).unwrap();
+        let pred = dict.key_by_value(&self.pred).unwrap();
+        let obj = dict.key_by_value(&self.obj).unwrap();
 
         let mut line = String::new();
         line.push_str(&sub);
@@ -61,7 +66,7 @@ impl Triple {
 pub fn get_triples(
     triple_lines: &Vec<String>,
     update_path: &PathBuf,
-    dict: &mut HashMap<String, u32>,
+    dict: &mut Dict,
 ) -> Result<(Vec<Triple>, Vec<Triple>, Vec<Triple>), Error> {
     // todo : multi thread
     let triples = get_current_triples(&triple_lines, dict)?;
@@ -70,10 +75,7 @@ pub fn get_triples(
     Ok((triples, additions, deletions))
 }
 
-fn get_current_triples(
-    triple_lines: &Vec<String>,
-    dict: &mut HashMap<String, u32>,
-) -> Result<Vec<Triple>, Error> {
+fn get_current_triples(triple_lines: &Vec<String>, dict: &mut Dict) -> Result<Vec<Triple>, Error> {
     let mut triples: Vec<Triple> = Vec::new();
 
     for l in triple_lines {
@@ -84,7 +86,7 @@ fn get_current_triples(
 
 fn get_update_triples(
     update_path: &PathBuf,
-    dict: &mut HashMap<String, u32>,
+    dict: &mut Dict,
 ) -> Result<(Vec<Triple>, Vec<Triple>), Error> {
     let mut additions: Vec<Triple> = Vec::new();
     let mut deletions: Vec<Triple> = Vec::new();

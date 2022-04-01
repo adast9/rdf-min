@@ -7,14 +7,15 @@ use crate::{util::io, Config};
 
 use self::{
     clique::Clique,
+    dict::Dict,
     index_map::get_index_map,
     meta_parser::{parse_meta, NodeInfo},
     triple::Triple,
 };
-use std::{collections::HashMap, path::PathBuf};
+use std::collections::HashMap;
 
 pub struct MetaData {
-    pub dict: HashMap<String, u32>,
+    pub dict: Dict,
     pub triples: Vec<Triple>,
     pub index_map: HashMap<u32, [usize; 2]>,
     pub supernodes: HashMap<u32, Vec<u32>>,
@@ -23,7 +24,7 @@ pub struct MetaData {
 
 impl MetaData {
     fn new(
-        dict: HashMap<String, u32>,
+        dict: Dict,
         triples: Vec<Triple>,
         index_map: HashMap<u32, [usize; 2]>,
         supernodes: HashMap<u32, Vec<u32>>,
