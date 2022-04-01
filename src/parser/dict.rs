@@ -66,6 +66,20 @@ impl Dict {
         self.dict.insert(new.to_string(), val);
     }
 
+    pub fn to_strings(&self) -> Vec<String> {
+        let mut vec: Vec<String> = Vec::new();
+        vec.resize(self.total_len(), String::new());
+
+        for (k, v) in self.dict {
+            vec[v as usize] = k;
+        }
+        return vec;
+    }
+
+    fn total_len(&self) -> usize {
+        return self.dict.len() + self.queue.len();
+    }
+
     fn next_id(&self) -> u32 {
         return self.dict.len() as u32 + self.queue.len() as u32 + 1;
     }

@@ -47,6 +47,14 @@ pub fn write_triples(path: &PathBuf, triples: &Vec<Triple>, dict: &Dict) -> Resu
     Ok(())
 }
 
+pub fn write_dict(path: &PathBuf, dict: &Dict) -> Result<(), Error> {
+    if path.exists() {
+        remove_file(path)?;
+    }
+    write_lines(path, &dict.to_strings());
+    Ok(())
+}
+
 pub fn read_lines<P>(path: &P) -> io::Result<Vec<String>>
 where
     P: AsRef<Path>,

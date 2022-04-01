@@ -28,6 +28,8 @@ fn main() {
     )
     .unwrap();
 
+    util::io::write_dict(&config.meta_folder_path.join("dict"), &stuff.dict).unwrap();
+
     println!("SOURCE CLIQUES");
     util::print::cliques_string(&sc, &stuff.dict);
     println!("");
