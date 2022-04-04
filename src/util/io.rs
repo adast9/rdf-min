@@ -16,18 +16,12 @@ fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     let mut file = OpenOptions::new()
         .create(true)
         .write(true)
-        .append(true)
+        .truncate(true)
         .open(path)?;
 
     for s in vec {
         writeln!(file, "{}", s)?
     }
-    Ok(())
-}
-
-fn write_json(path: &PathBuf, string: &str) -> Result<(), Error> {
-    let mut file = OpenOptions::new().create(true).write(true).open(path)?;
-    writeln!(file, "{}", string)?;
     Ok(())
 }
 
@@ -49,10 +43,7 @@ pub fn write_triples(path: &PathBuf, triples: &Vec<Triple>, dict: &Dict) -> Resu
             triple_strings.push(triple_string);
         }
     }
-
-    write_lines(path, &triple_strings)?;
-
-    Ok(())
+    Ok(write_lines(path, &triple_strings)?)
 }
 
 pub fn write_dict(path: &PathBuf, dict: &Dict) -> Result<(), Error> {
@@ -69,7 +60,7 @@ pub fn write_meta(
 ) -> Result<(), Error> {
     let data = MetaFile::new(supernodes, nodes);
     let file_str = serde_json::to_string(&data)?;
-    Ok(write_json(path, &file_str)?)
+    Ok(write_lines(path, &vec![file_str])?)
 }
 
 pub fn read_lines<P>(path: &P) -> io::Result<Vec<String>>
