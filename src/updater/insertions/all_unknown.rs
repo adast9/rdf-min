@@ -1,5 +1,5 @@
 use crate::{
-    parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData},
+    parser::{clique::Clique, meta::NodeInfo, triple::Triple, MetaData},
     updater::funcs::{add_id_to_index_map, add_unknown_node_and_pred_to_clique},
 };
 

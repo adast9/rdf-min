@@ -1,8 +1,4 @@
-use std::{
-    env,
-    path::{Path, PathBuf},
-    process,
-};
+use std::{env, path::PathBuf, process};
 
 mod parser;
 mod tests;
@@ -29,6 +25,13 @@ fn main() {
     .unwrap();
 
     util::io::write_dict(&config.meta_folder_path.join("dict"), &stuff.dict).unwrap();
+
+    util::io::write_meta(
+        &config.meta_folder_path.join("meta.json"),
+        &stuff.supernodes,
+        &stuff.nodes,
+    )
+    .unwrap();
 
     println!("SOURCE CLIQUES");
     util::print::cliques_string(&sc, &stuff.dict);

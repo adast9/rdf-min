@@ -1,4 +1,5 @@
 use io::{BufReader, Error};
+use std::collections::HashMap;
 use std::fs::remove_file;
 use std::fs::File;
 use std::fs::OpenOptions;
@@ -8,9 +9,10 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use crate::parser::dict::Dict;
+use crate::parser::meta::{MetaFile, NodeInfo};
 use crate::parser::triple::Triple;
 
-pub fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
+fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     let mut file = OpenOptions::new()
         .create(true)
         .write(true)
@@ -20,6 +22,12 @@ pub fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     for s in vec {
         writeln!(file, "{}", s)?
     }
+    Ok(())
+}
+
+fn write_json(path: &PathBuf, string: &str) -> Result<(), Error> {
+    let mut file = OpenOptions::new().create(true).write(true).open(path)?;
+    writeln!(file, "{}", string)?;
     Ok(())
 }
 
@@ -51,8 +59,17 @@ pub fn write_dict(path: &PathBuf, dict: &Dict) -> Result<(), Error> {
     if path.exists() {
         remove_file(path)?;
     }
-    write_lines(path, &dict.to_strings());
-    Ok(())
+    Ok(write_lines(path, &dict.to_strings())?)
+}
+
+pub fn write_meta(
+    path: &PathBuf,
+    supernodes: &HashMap<u32, Vec<u32>>,
+    nodes: &HashMap<u32, NodeInfo>,
+) -> Result<(), Error> {
+    let data = MetaFile::new(supernodes, nodes);
+    let file_str = serde_json::to_string(&data)?;
+    Ok(write_json(path, &file_str)?)
 }
 
 pub fn read_lines<P>(path: &P) -> io::Result<Vec<String>>
@@ -63,8 +80,4 @@ where
 
     let lines: Vec<_> = BufReader::new(file).lines().collect::<Result<_, _>>()?;
     Ok(lines)
-}
-
-pub fn file_exists(path: &PathBuf) -> bool {
-    return path.exists();
 }

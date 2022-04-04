@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple};
+use crate::parser::{clique::Clique, meta::NodeInfo, triple::Triple};
 
 use super::{do_intersection, intersects};
 
@@ -48,8 +48,10 @@ pub fn delete_triple(
                         break;
                     }
                 }
-                
-                if is_intersect_incoming == true { break; }
+
+                if is_intersect_incoming == true {
+                    break;
+                }
             }
         } else {
             //do somethings!
