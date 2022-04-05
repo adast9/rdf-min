@@ -43,6 +43,26 @@ pub fn remove_from_supernode(stuff: &mut Stuff, supernode_id: u32, node: &u32) {
     remove_parent(&mut stuff.nodes, node);
 }
 
+/// Remove vector from stuff.node
+fn remove_from_node(stuff: &mut Stuff, triple: &mut Triple, is_outgoing: bool) {
+    if is_outgoing {
+        stuff
+        .nodes
+        .get_mut(&triple.sub)
+        .unwrap()
+        .outgoing
+        .retain(|x| x[1] != triple.sub && x[0] != triple.pred);
+    }
+    else {
+        stuff
+        .nodes
+        .get_mut(&triple.obj)
+        .unwrap()
+        .incoming
+        .retain(|x| x[1] != triple.obj && x[0] != triple.pred);
+    }
+}
+
 /// Sets the parent of `node` to `None`.
 pub fn remove_parent(nodes: &mut HashMap<u32, NodeInfo>, node: &u32) {
     nodes.get_mut(node).unwrap().parent = None;

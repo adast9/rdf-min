@@ -4,6 +4,8 @@ use self::{insertions::CliqueChange, triple_updater::update_changes};
 pub mod funcs;
 mod insertions;
 mod triple_updater;
+mod deletion;
+
 
 pub fn run(
     stuff: &mut Stuff,
@@ -126,6 +128,15 @@ fn handle_clique_change(
 }
 
 fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
+    for n in v1 {
+        if v2.contains(&n) {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn intersects_for_vec_of_vec(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
     for n in v1 {
         if v2.contains(&n) {
             return true;
