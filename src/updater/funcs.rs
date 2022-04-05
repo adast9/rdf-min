@@ -253,11 +253,7 @@ fn replace_all_triple(triples: &mut Vec<Triple>, old: &u32, new: &u32) {
 }
 
 pub fn index_of_empty_clique(cliques: &Vec<Clique>) -> usize {
-    for (i, clique) in cliques.iter().enumerate() {
-        if clique.preds.is_empty() && !clique.nodes.is_empty() {
-            return i;
-        }
-    }
+    return 0;
     panic!("Trouble finding the empty-set clique. This might be able to happen in rare cases. Ask Esben");
 }
 

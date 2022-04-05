@@ -60,8 +60,6 @@ pub fn insert(
     // todo: remove the split node's name from the supernode
     let snode = stuff.nodes.get(node).unwrap().parent.unwrap();
 
-    split_snode_name(&mut stuff.dict, &snode, node);
-
     remove_from_supernode(stuff, snode, node);
     clique[pred_index].add_node(node);
 
@@ -86,6 +84,8 @@ pub fn insert(
             node_index,
             other_clique_index,
         );
+    } else {
+        split_snode_name(&mut stuff.dict, &snode, node);
     }
 
     return Some(CliqueChange::new(pred_index, vec![*node], is_source));
