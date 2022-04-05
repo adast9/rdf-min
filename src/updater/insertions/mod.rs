@@ -1,4 +1,4 @@
-use crate::parser::{clique::Clique, meta::NodeInfo, triple::Triple, MetaData};
+use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData};
 
 use super::funcs::index_of_empty_clique;
 mod all_known;

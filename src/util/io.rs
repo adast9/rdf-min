@@ -9,7 +9,7 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use crate::parser::dict::Dict;
-use crate::parser::meta::{MetaFile, NodeInfo};
+use crate::parser::meta_parser::{MetaFile, NodeInfo};
 use crate::parser::triple::Triple;
 
 fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
@@ -26,10 +26,6 @@ fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
 }
 
 pub fn write_triples(path: &PathBuf, triples: &Vec<Triple>, dict: &Dict) -> Result<(), Error> {
-    if path.exists() {
-        remove_file(path)?;
-    }
-
     let mut triple_strings: Vec<String> = Vec::new();
 
     for triple in triples {

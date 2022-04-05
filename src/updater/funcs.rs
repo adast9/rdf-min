@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::{clique::Clique, dict::Dict, meta::NodeInfo, triple::Triple, MetaData};
+use crate::parser::{clique::Clique, dict::Dict, meta_parser::NodeInfo, triple::Triple, MetaData};
 
 /// Gets all incoming and outgoing edges for all nodes in `ids`.
 pub fn get_edges(nodes: &HashMap<u32, NodeInfo>, ids: &Vec<u32>) -> (Vec<Vec<u32>>, Vec<Vec<u32>>) {

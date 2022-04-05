@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf, process};
+use std::{env, fs, path::PathBuf, process};
 
 mod parser;
 mod tests;
@@ -23,6 +23,10 @@ fn main() {
         &stuff.dict,
     )
     .unwrap();
+
+    if config.use_fast {
+        fs::create_dir(&config.meta_folder_path).unwrap();
+    }
 
     util::io::write_dict(&config.meta_folder_path.join("dict"), &stuff.dict).unwrap();
 
