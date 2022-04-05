@@ -47,7 +47,7 @@ pub fn run(
         triple::get_triples(&triple_lines, &config.update_path, &mut dict)?;
     let (source_cliques, target_cliques) = clique::create_cliques(&triples);
     let index_map = get_index_map(&source_cliques, &target_cliques);
-    let (supernodes, nodes) = parse_meta(&config.meta_folder_path.join("meta.json"))?;
+    let (supernodes, nodes) = parse_meta(&config)?;
 
     let stuff = MetaData::new(dict, triples, index_map, supernodes, nodes);
 
