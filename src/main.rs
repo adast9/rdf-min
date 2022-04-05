@@ -1,5 +1,6 @@
 use std::{env, fs, path::PathBuf, process};
 
+mod classes;
 mod parser;
 mod tests;
 mod updater;

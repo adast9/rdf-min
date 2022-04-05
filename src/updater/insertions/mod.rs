@@ -1,4 +1,4 @@
-use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData};
+use crate::parser::{clique::Clique, meta::NodeInfo, triple::Triple, MetaData};
 
 use super::funcs::index_of_empty_clique;
 mod all_known;
@@ -32,6 +32,9 @@ pub fn get_changes(
 
     // HER KOMMER ET VILDT FORSØG PÅ CRAZY!!!!!
     if !sub_known {
+        // sc.new_node(triple.sub);
+        // tc.new_node(triple.sub);
+        // all_nodes.new_node(triple, is_sub=true);
         let sc_empty = index_of_empty_clique(sc);
         let tc_empty = index_of_empty_clique(tc);
         sc[sc_empty].nodes.push(triple.sub);
@@ -42,6 +45,8 @@ pub fn get_changes(
             NodeInfo::new(&None, &vec![], &vec![vec![triple.pred, triple.obj]]),
         );
     } else {
+        // all_nodes.add_outgoing(triple);
+
         stuff
             .nodes
             .get_mut(&triple.sub)
@@ -50,6 +55,9 @@ pub fn get_changes(
             .push(vec![triple.pred, triple.obj]);
     }
     if !obj_known {
+        // sc.new_node(triple.obj);
+        // tc.new_node(triple.obj);
+        // all_nodes.new_node(triple, is_sub=false);
         let sc_empty = index_of_empty_clique(sc);
         let tc_empty = index_of_empty_clique(tc);
         sc[sc_empty].nodes.push(triple.obj);
@@ -60,6 +68,7 @@ pub fn get_changes(
             NodeInfo::new(&None, &vec![vec![triple.pred, triple.sub]], &vec![]),
         );
     } else {
+        // all_nodes.add_incoming(triple);
         stuff
             .nodes
             .get_mut(&triple.obj)
@@ -68,6 +77,8 @@ pub fn get_changes(
             .push(vec![triple.pred, triple.sub]);
     }
     if !pred_known {
+        // sc.new_pred(triple.pred);
+        // tc.new_pred(triple.pred);
         sc.push(Clique::new(&vec![triple.pred], &vec![]));
         tc.push(Clique::new(&vec![triple.pred], &vec![]));
         stuff
@@ -76,6 +87,8 @@ pub fn get_changes(
     }
 
     // Dirty dirty
+
+    // triples.add(triple);
     let mut new_sub = triple.sub;
     let mut new_obj = triple.obj;
     if let Some(p) = stuff.nodes.get(&triple.sub).unwrap().parent {
@@ -91,6 +104,7 @@ pub fn get_changes(
         is_type: triple.is_type,
     });
 
+    // all_known::insert(stuff, triple);
     let mut changes: Vec<CliqueChange> = Vec::new();
     if let Some(change) = all_known::insert(stuff, triple, sc, tc, true) {
         changes.push(change);
@@ -103,6 +117,10 @@ pub fn get_changes(
 }
 
 fn are_they_known(stuff: &MetaData, triple: &Triple) -> (bool, bool, bool) {
+    //let sub_known = all_nodes.exists(&triple.sub)
+    //let obj_known = all_nodes.exists(&triple.obj)
+    //let pred_known = sc.pred_exists(&triple.pred)
+
     let sub_is_known =
         stuff.supernodes.contains_key(&triple.sub) || stuff.nodes.contains_key(&triple.sub);
     let obj_is_known =
