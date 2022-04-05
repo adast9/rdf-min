@@ -1,16 +1,16 @@
 use crate::{
-    parser::{clique::Clique, triple::Triple, Stuff},
+    parser::{clique::Clique, triple::Triple, MetaData},
     updater::funcs::{
-        get_node_index, index_of_empty_clique, merge_cliques, node_is_in_supernode,
-        node_is_supernode, remove_from_supernode, to_single_node, update_clique_indices,
-        update_index, update_triples_after_split,
+        get_name, get_node_index, index_of_empty_clique, merge_cliques, node_is_in_supernode,
+        node_is_supernode, remove_from_supernode, split_snode_name, to_single_node,
+        update_clique_indices, update_index, update_triples_after_split,
     },
 };
 
 use super::CliqueChange;
 
 pub fn insert(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     triple: &Triple,
     clique: &mut Vec<Clique>,
     other_clique: &mut Vec<Clique>,
@@ -51,7 +51,6 @@ pub fn insert(
         clique[pred_index].add_node(node);
         clique[node_index].remove_node(node);
 
-        println!("looking for node {}", node);
         update_index(&mut stuff.index_map, node, pred_index, i);
 
         return Some(CliqueChange::new(pred_index, vec![*node], is_source));
@@ -85,6 +84,8 @@ pub fn insert(
             node_index,
             other_clique_index,
         );
+    } else {
+        split_snode_name(&mut stuff.dict, &snode, node);
     }
 
     return Some(CliqueChange::new(pred_index, vec![*node], is_source));

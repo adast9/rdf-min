@@ -1,22 +1,17 @@
 use std::collections::HashMap;
 
-use crate::{
-    parser::{clique::Clique, triple::Triple, Stuff},
-    util::generate_new_id,
-};
+use crate::parser::{clique::Clique, triple::Triple, MetaData};
 
-use super::funcs::{get_key_by_value, new_parent};
+use super::funcs::{get_name, new_parent};
 
 pub fn update_changes(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     snodes: &Vec<Vec<u32>>,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
 ) {
     for snode in snodes {
-        let new_node = generate_new_id(&stuff.dict);
-
-        dict_new_snode(stuff, snode, &new_node);
+        let new_node = dict_new_snode(stuff, snode);
         update_triples(&mut stuff.triples, snode, &new_node);
         update_index_map(&mut stuff.index_map, snode, &new_node);
         update_supernodes(stuff, snode, &new_node);
@@ -25,7 +20,7 @@ pub fn update_changes(
 }
 
 fn update_cliques(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
     snode: &Vec<u32>,
@@ -45,7 +40,7 @@ fn update_cliques(
 
 /// Combines all nodes in `snode` into a single supernode in `stuff.supernodes`.
 /// Also updates the `parent` field of all nodes in `snode`.
-fn update_supernodes(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
+fn update_supernodes(stuff: &mut MetaData, snode: &Vec<u32>, new_node: &u32) {
     let mut singlenodes_in_new_supernode: Vec<u32> = Vec::new();
 
     for node in snode {
@@ -70,43 +65,25 @@ fn update_supernodes(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
 }
 
 /// Removes all nodes in `snode` and inserts `new_node`.
-fn dict_new_snode(stuff: &mut Stuff, snode: &Vec<u32>, new_node: &u32) {
-    let mut snode_string = get_key_by_value(&stuff.dict, &snode[0]);
+fn dict_new_snode(stuff: &mut MetaData, snode: &Vec<u32>) -> u32 {
+    let mut snode_string = stuff.dict.key_by_value(&snode[0]).unwrap();
     if stuff.supernodes.contains_key(&snode[0]) {
-        stuff.dict.remove(&snode_string);
+        stuff.dict.remove2(&snode_string);
     }
 
     snode_string = remove_angle_bracket_at_end(&snode_string).to_string();
 
     for node in snode.iter().skip(1) {
-        let node_string = get_key_by_value(&stuff.dict, node);
+        let node_string = stuff.dict.key_by_value(node).unwrap();
         snode_string.push_str("_");
         snode_string.push_str(&get_name(&node_string));
         if stuff.supernodes.contains_key(node) {
-            stuff.dict.remove(&node_string);
+            stuff.dict.remove2(&node_string);
         }
     }
 
     snode_string.push_str(">");
-    stuff.dict.insert(snode_string.clone(), *new_node);
-}
-
-fn get_name(string: &String) -> String {
-    let mut name = String::new();
-    let mut chars = string.chars();
-
-    while let Some(c) = chars.next_back() {
-        if c == '/' {
-            break;
-        }
-        if c == '>' {
-            continue;
-        }
-
-        name = c.to_string() + &name;
-    }
-
-    return name;
+    return stuff.dict.add2(&snode_string);
 }
 
 fn remove_angle_bracket_at_end(string: &String) -> &str {

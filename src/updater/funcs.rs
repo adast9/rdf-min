@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, Stuff};
+use crate::parser::{clique::Clique, dict::Dict, meta_parser::NodeInfo, triple::Triple, MetaData};
 
 /// Gets all incoming and outgoing edges for all nodes in `ids`.
 pub fn get_edges(nodes: &HashMap<u32, NodeInfo>, ids: &Vec<u32>) -> (Vec<Vec<u32>>, Vec<Vec<u32>>) {
@@ -34,7 +34,7 @@ pub fn get_edges(nodes: &HashMap<u32, NodeInfo>, ids: &Vec<u32>) -> (Vec<Vec<u32
 }
 
 /// Removes `node` from the supernode `supernode_id` and sets its parent to `None`.
-pub fn remove_from_supernode(stuff: &mut Stuff, supernode_id: u32, node: &u32) {
+pub fn remove_from_supernode(stuff: &mut MetaData, supernode_id: u32, node: &u32) {
     stuff
         .supernodes
         .get_mut(&supernode_id)
@@ -76,7 +76,7 @@ pub fn new_parent(nodes: &mut HashMap<u32, NodeInfo>, node: &u32, new_parent: &u
 /// Gets the index of the clique containing `node`.
 ///
 /// `i = 0` for source clique, `i = 1` for target clique.
-pub fn get_node_index(stuff: &mut Stuff, node: &u32, i: usize) -> usize {
+pub fn get_node_index(stuff: &mut MetaData, node: &u32, i: usize) -> usize {
     if let Some(p) = stuff.nodes.get(node).unwrap().parent {
         return stuff.index_map.get(&p).unwrap()[i];
     } else {
@@ -148,7 +148,7 @@ pub fn update_index(
 ///
 /// If the update requires new triples to be made, they are returned.
 pub fn update_triples_after_split(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     node: &u32,
     snode: &u32,
 ) -> Option<Vec<Triple>> {
@@ -232,7 +232,7 @@ fn update_triple_after_split(
 
 /// Turns a supernode with 1 element `snode` into a single node.
 pub fn to_single_node(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     clique: &mut Vec<Clique>,
     other_clique: &mut Vec<Clique>,
     snode: &u32,
@@ -273,11 +273,7 @@ fn replace_all_triple(triples: &mut Vec<Triple>, old: &u32, new: &u32) {
 }
 
 pub fn index_of_empty_clique(cliques: &Vec<Clique>) -> usize {
-    for (i, clique) in cliques.iter().enumerate() {
-        if clique.preds.is_empty() && !clique.nodes.is_empty() {
-            return i;
-        }
-    }
+    return 0;
     panic!("Trouble finding the empty-set clique. This might be able to happen in rare cases. Ask Esben");
 }
 
@@ -312,17 +308,8 @@ fn index_of_id_in_cliques(id: &u32, cliques: &Vec<Clique>) -> usize {
     panic!("Node not found in cliques!");
 }
 
-pub fn get_key_by_value(dict: &HashMap<String, u32>, value: &u32) -> String {
-    for (key, val) in dict {
-        if val == value {
-            return key.clone();
-        }
-    }
-    panic!("Value not found in dict!");
-}
-
 pub fn add_unknown_pred_to_clique(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     clique: &mut Vec<Clique>,
     pred: &u32,
     node: &u32,
@@ -338,4 +325,38 @@ pub fn add_unknown_pred_to_clique(
     clique[node_index].remove_node(node);
     clique.push(Clique::new(&vec![*pred], &vec![*node]));
     return clique.len() - 1;
+}
+
+pub fn get_name(string: &String) -> String {
+    let mut name = String::new();
+    let mut chars = string.chars();
+
+    while let Some(c) = chars.next_back() {
+        if c == '/' {
+            break;
+        }
+        if c == '>' {
+            continue;
+        }
+
+        name = c.to_string() + &name;
+    }
+
+    return name;
+}
+
+pub fn split_snode_name(dict: &mut Dict, snode: &u32, node: &u32) {
+    let mut snode_string = dict.key_by_value(snode).unwrap();
+    let node_string = get_name(&dict.key_by_value(node).unwrap());
+
+    let index = snode_string.find(&node_string).unwrap();
+
+    let old_key = snode_string.clone();
+    if (index + node_string.len() + 1 == snode_string.len()) {
+        snode_string.replace_range((index - 1..index + node_string.len()), "");
+    } else {
+        snode_string.replace_range((index..index + node_string.len() + 1), "");
+    }
+
+    dict.update_key(&snode_string, &old_key);
 }

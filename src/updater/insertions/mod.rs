@@ -1,4 +1,4 @@
-use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, Stuff};
+use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData};
 
 use super::funcs::index_of_empty_clique;
 mod all_known;
@@ -23,7 +23,7 @@ impl CliqueChange {
 }
 
 pub fn get_changes(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     triple: &Triple,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
@@ -100,36 +100,9 @@ pub fn get_changes(
     }
 
     return changes;
-
-    // // Case: all_known
-    // if sub_known && pred_known && obj_known {
-    //     let mut changes: Vec<CliqueChange> = Vec::new();
-    //     if let Some(change) = all_known::insert(stuff, triple, sc, tc, true) {
-    //         changes.push(change);
-    //     }
-    //     if let Some(change) = all_known::insert(stuff, triple, tc, sc, false) {
-    //         changes.push(change);
-    //     }
-
-    //     return changes;
-    // }
-
-    // // Case: all_unknown
-    // if !sub_known && !pred_known && !obj_known {
-    //     all_unknown::insert(stuff, triple, sc, tc);
-    //     return vec![];
-    // }
-
-    // // Case: only pred_unknown
-    // if sub_known && !pred_known && obj_known {
-    //     pred_unknown::insert(stuff, triple, sc, tc);
-    //     return vec![];
-    // }
-
-    // return vec![];
 }
 
-fn are_they_known(stuff: &Stuff, triple: &Triple) -> (bool, bool, bool) {
+fn are_they_known(stuff: &MetaData, triple: &Triple) -> (bool, bool, bool) {
     let sub_is_known =
         stuff.supernodes.contains_key(&triple.sub) || stuff.nodes.contains_key(&triple.sub);
     let obj_is_known =

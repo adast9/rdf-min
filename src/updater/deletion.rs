@@ -83,10 +83,12 @@ fn group_outgoing_edges(nodeinfo: &NodeInfo) -> Vec<u32> {
     return outgoing_edges;
 }
 
+// If empty then move sub in source clique to empty clique
+
 // Check if edges is empty
 fn is_edges_empty(nodeinfo: &NodeInfo, is_outgoing: bool) -> bool {
     let edges = if is_outgoing { nodeinfo.outgoing } else { nodeinfo.incoming };
-    
+
     if edges.is_empty() {
         return true;
     }

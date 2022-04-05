@@ -1,4 +1,4 @@
-use crate::parser::{clique::Clique, triple::Triple, Stuff};
+use crate::parser::{clique::Clique, triple::Triple, MetaData};
 
 use self::{insertions::CliqueChange, triple_updater::update_changes};
 pub mod funcs;
@@ -8,7 +8,7 @@ mod deletion;
 
 
 pub fn run(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     insertions: Vec<Triple>,
     _deletions: Vec<Triple>,
     sc: &mut Vec<Clique>,
@@ -18,7 +18,7 @@ pub fn run(
 }
 
 fn handle_insersertions(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     insertions: Vec<Triple>,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
@@ -36,7 +36,7 @@ fn handle_insersertions(
 }
 
 pub fn get_super_nodes(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     changes: Vec<CliqueChange>,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,
@@ -97,7 +97,7 @@ pub fn get_super_nodes(
 }
 
 fn handle_clique_change(
-    stuff: &mut Stuff,
+    stuff: &mut MetaData,
     change: CliqueChange,
     sc: &mut Vec<Clique>,
     tc: &mut Vec<Clique>,

@@ -53,14 +53,14 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (Vec<Clique>, Vec<Clique>) {
     let mut source_cliques: Vec<Clique> = Vec::new();
     let mut target_cliques: Vec<Clique> = Vec::new();
 
+    // Add empty sets
+    source_cliques.push(Clique::new(&vec![], &vec![]));
+    target_cliques.push(Clique::new(&vec![], &vec![]));
+
     for triple in triples {
         add_new_triple(triple, &mut source_cliques, true);
         add_new_triple(triple, &mut target_cliques, false);
     }
-
-    // Add empty sets
-    source_cliques.push(Clique::new(&vec![], &vec![]));
-    target_cliques.push(Clique::new(&vec![], &vec![]));
 
     let ids = unique_ids(triples);
 

@@ -1,8 +1,4 @@
-use std::{
-    env,
-    path::{Path, PathBuf},
-    process,
-};
+use std::{env, fs, path::PathBuf, process};
 
 mod parser;
 mod tests;
@@ -28,6 +24,19 @@ fn main() {
     )
     .unwrap();
 
+    if config.use_fast {
+        fs::create_dir(&config.meta_folder_path).unwrap();
+    }
+
+    util::io::write_dict(&config.meta_folder_path.join("dict"), &stuff.dict).unwrap();
+
+    util::io::write_meta(
+        &config.meta_folder_path.join("meta.json"),
+        &stuff.supernodes,
+        &stuff.nodes,
+    )
+    .unwrap();
+
     println!("SOURCE CLIQUES");
     util::print::cliques_string(&sc, &stuff.dict);
     println!("");
@@ -43,10 +52,16 @@ pub struct Config {
     dataset_path: PathBuf,
     meta_folder_path: PathBuf,
     update_path: PathBuf,
+    use_fast: bool,
 }
 
 impl Config {
     fn new(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() == 1 || args[1] == "--help" || args[1] == "-h" {
+            println!("STFU LOSER BITCH");
+            process::exit(0);
+        }
+
         if args.len() < 3 {
             return Err("not enough arguments");
         }
@@ -56,20 +71,30 @@ impl Config {
             return Err("dataset path does not exist");
         }
 
-        let meta_folder_path = PathBuf::from(&args[2]);
-        if !meta_folder_path.exists() {
-            return Err("meta folder path does not exist");
-        }
-
-        let update_path = PathBuf::from(&args[3]);
+        let update_path = PathBuf::from(&args[2]);
         if !update_path.exists() {
             return Err("update path does not exist");
+        }
+
+        let meta_folder_path = PathBuf::from(&args[3]);
+
+        let mut use_fast = false;
+        if args.len() > 4 && (args[4] == "--fast" || args[4] == "-f") {
+            println!("[ANON] GAMER MODE ACTIVATED _  _ _ xX_Using fast mode_Xx");
+            use_fast = true;
+        }
+
+        if use_fast && meta_folder_path.exists() {
+            return Err("Using fast mode and meta folder path already exists");
+        } else if !use_fast && !meta_folder_path.exists() {
+            return Err("using slow mode and meta folder path does not exist");
         }
 
         Ok(Config {
             dataset_path,
             meta_folder_path,
             update_path,
+            use_fast,
         })
     }
 }
