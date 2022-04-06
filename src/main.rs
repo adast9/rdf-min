@@ -14,7 +14,7 @@ fn main() {
         process::exit(1);
     });
 
-    let (mut stuff, additions, deletions, mut sc, mut tc) = parser::run(&config).unwrap();
+    let (mut dataset, mut meta, mut sc, mut tc) = parser::run(&config).unwrap();
 
     updater::run(&mut stuff, additions, deletions, &mut sc, &mut tc);
 

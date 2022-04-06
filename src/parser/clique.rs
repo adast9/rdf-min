@@ -17,7 +17,6 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (CliqueCollection, CliqueCollect
             tc.add_node_to_empty_clique(&n);
         }
     }
-
     return (sc, tc);
 }
 
@@ -33,6 +32,5 @@ fn unique_nodes(triples: &Vec<Triple>) -> Vec<u32> {
             ids.push(triple.obj);
         }
     }
-
     return ids;
 }

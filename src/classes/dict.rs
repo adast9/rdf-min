@@ -6,8 +6,17 @@ pub struct Dict {
 }
 
 impl Dict {
+    /// Creates an new `Dict`.
+    pub fn new(dict_lines: &Vec<String>) -> Self {
+        let dict = Dict::empty();
+        for l in dict_lines {
+            dict.add(&l);
+        }
+        return dict;
+    }
+
     /// Creates an empty `Dict`.
-    pub fn new() -> Self {
+    pub fn empty() -> Self {
         return Self {
             dict: HashMap::new(),
             queue: VecDeque::new(),

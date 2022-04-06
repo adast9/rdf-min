@@ -57,3 +57,29 @@ impl Triple {
         return line;
     }
 }
+
+pub struct TripleCollection {
+    pub data_triples: Vec<Triple>,
+    pub type_triples: Vec<Triple>,
+}
+
+impl TripleCollection {
+    pub fn new(triples: Vec<String>, dict: &mut Dict) -> Self {
+        let mut data_triples: Vec<Triple> = Vec::new();
+        let mut type_triples: Vec<Triple> = Vec::new();
+
+        for l in triples {
+            let t = Triple::new(&l, dict);
+            if t.is_type {
+                type_triples.push(t);
+            } else {
+                data_triples.push(t);
+            }
+        }
+
+        Self {
+            data_triples,
+            type_triples,
+        }
+    }
+}
