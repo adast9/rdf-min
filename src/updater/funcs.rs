@@ -34,19 +34,19 @@ pub fn get_edges(nodes: &HashMap<u32, NodeInfo>, ids: &Vec<u32>) -> (Vec<Vec<u32
 }
 
 /// Removes `node` from the supernode `supernode_id` and sets its parent to `None`.
-pub fn remove_from_supernode(stuff: &mut MetaData, supernode_id: u32, node: &u32) {
-    stuff
+pub fn remove_from_supernode(metadata: &mut MetaData, supernode_id: u32, node: &u32) {
+    metadata
         .supernodes
         .get_mut(&supernode_id)
         .unwrap()
         .retain(|x| *x != *node);
-    remove_parent(&mut stuff.nodes, node);
+    remove_parent(&mut metadata.nodes, node);
 }
 
-/// Remove vector from stuff.node
-fn remove_from_node(stuff: &mut Stuff, triple: &mut Triple, is_outgoing: bool) {
+/// Remove vector from metadata.node
+fn remove_from_node(metadata: &mut MetaData, triple: &mut Triple, is_outgoing: bool) {
     if is_outgoing {
-        stuff
+        metadata
         .nodes
         .get_mut(&triple.sub)
         .unwrap()
@@ -54,7 +54,7 @@ fn remove_from_node(stuff: &mut Stuff, triple: &mut Triple, is_outgoing: bool) {
         .retain(|x| x[1] != triple.sub && x[0] != triple.pred);
     }
     else {
-        stuff
+        metadata
         .nodes
         .get_mut(&triple.obj)
         .unwrap()
@@ -76,11 +76,11 @@ pub fn new_parent(nodes: &mut HashMap<u32, NodeInfo>, node: &u32, new_parent: &u
 /// Gets the index of the clique containing `node`.
 ///
 /// `i = 0` for source clique, `i = 1` for target clique.
-pub fn get_node_index(stuff: &mut MetaData, node: &u32, i: usize) -> usize {
-    if let Some(p) = stuff.nodes.get(node).unwrap().parent {
-        return stuff.index_map.get(&p).unwrap()[i];
+pub fn get_node_index(metadata: &mut MetaData, node: &u32, i: usize) -> usize {
+    if let Some(p) = metadata.nodes.get(node).unwrap().parent {
+        return metadata.index_map.get(&p).unwrap()[i];
     } else {
-        return stuff.index_map.get(node).unwrap()[i];
+        return metadata.index_map.get(node).unwrap()[i];
     }
 }
 
@@ -148,15 +148,15 @@ pub fn update_index(
 ///
 /// If the update requires new triples to be made, they are returned.
 pub fn update_triples_after_split(
-    stuff: &mut MetaData,
+    metadata: &mut MetaData,
     node: &u32,
     snode: &u32,
 ) -> Option<Vec<Triple>> {
     let mut new_triples: Vec<Triple> = Vec::new();
 
-    for triple in &mut stuff.triples {
+    for triple in &mut metadata.triples {
         let new_triple =
-            update_triple_after_split(&stuff.nodes, &stuff.supernodes, triple, node, snode);
+            update_triple_after_split(&metadata.nodes, &metadata.supernodes, triple, node, snode);
 
         if let Some(new_triple) = new_triple {
             new_triples.push(new_triple);
@@ -232,25 +232,25 @@ fn update_triple_after_split(
 
 /// Turns a supernode with 1 element `snode` into a single node.
 pub fn to_single_node(
-    stuff: &mut MetaData,
+    metadata: &mut MetaData,
     clique: &mut Vec<Clique>,
     other_clique: &mut Vec<Clique>,
     snode: &u32,
     node_index: usize,
     other_clique_index: usize,
 ) {
-    let node = stuff.supernodes.get(&snode).unwrap()[0];
+    let node = metadata.supernodes.get(&snode).unwrap()[0];
 
-    stuff.supernodes.remove(&snode);
-    remove_parent(&mut stuff.nodes, &node);
+    metadata.supernodes.remove(&snode);
+    remove_parent(&mut metadata.nodes, &node);
 
     clique[node_index].remove_node(snode);
     clique[node_index].add_node(&node);
     other_clique[other_clique_index].remove_node(snode);
     other_clique[other_clique_index].add_node(&node);
 
-    replace_node_index(&mut stuff.index_map, snode, &node);
-    replace_all_triple(&mut stuff.triples, snode, &node)
+    replace_node_index(&mut metadata.index_map, snode, &node);
+    replace_all_triple(&mut metadata.triples, snode, &node)
 }
 
 /// Replaces the `old` node entrance with `new` in `index_map`.
@@ -309,13 +309,13 @@ fn index_of_id_in_cliques(id: &u32, cliques: &Vec<Clique>) -> usize {
 }
 
 pub fn add_unknown_pred_to_clique(
-    stuff: &mut MetaData,
+    metadata: &mut MetaData,
     clique: &mut Vec<Clique>,
     pred: &u32,
     node: &u32,
     i: usize,
 ) -> usize {
-    let node_index = get_node_index(stuff, node, i);
+    let node_index = get_node_index(metadata, node, i);
 
     if !clique[node_index].preds.is_empty() {
         clique[node_index].preds.push(*pred);
