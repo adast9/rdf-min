@@ -1,13 +1,10 @@
 pub mod clique;
 pub mod dict;
-pub mod index_map;
-pub mod meta_parser;
 pub mod triple;
-use crate::{util::io, Config};
-
-use self::{
-    clique::Clique, dict::Dict, index_map::get_index_map, meta_parser::parse_meta,
-    meta_parser::NodeInfo, triple::Triple,
+use crate::{
+    classes::{clique::Clique, dict::Dict, node_info::NodeInfo, triple::Triple},
+    util::io,
+    Config,
 };
 use std::collections::HashMap;
 

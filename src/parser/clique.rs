@@ -1,4 +1,4 @@
-use crate::classes::{clique_collection::CliqueCollection, triple::Triple};
+use crate::classes::{clique::CliqueCollection, triple::Triple};
 
 pub fn create_cliques(triples: &Vec<Triple>) -> (CliqueCollection, CliqueCollection) {
     let sc = CliqueCollection::new();

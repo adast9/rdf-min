@@ -1,9 +1,8 @@
+use crate::classes::dict::Dict;
+use crate::classes::triple::Triple;
 use crate::util::io;
-use std::collections::HashMap;
 use std::io::Error;
 use std::path::PathBuf;
-
-use super::dict::Dict;
 
 pub fn get_triples(
     triple_lines: &Vec<String>,
