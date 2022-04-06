@@ -1,9 +1,12 @@
+use std::collections::{HashMap, VecDeque};
+
 pub struct Dict {
     dict: HashMap<String, u32>,
     queue: VecDeque<u32>,
 }
 
 impl Dict {
+    /// Creates an empty `Dict`.
     pub fn new() -> Self {
         return Self {
             dict: HashMap::new(),
@@ -11,7 +14,10 @@ impl Dict {
         };
     }
 
-    pub fn add2(&mut self, key: &String) -> u32 {
+    /// Adds a new entry `key` to the `Dict`.
+    ///
+    /// The id assigned to `key` is returned.
+    pub fn add(&mut self, key: &String) -> u32 {
         if key.is_empty() {
             let id = self.next_id();
             self.queue.push_back(id);
@@ -28,8 +34,13 @@ impl Dict {
         }
     }
 
-    pub fn remove2(&mut self, key: &String) {
-        if !self.contains2(key) {
+    /// Removes the entry `key` from the `Dict`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `Dict` does not contain `key`.
+    pub fn remove(&mut self, key: &String) {
+        if !self.contains(key) {
             panic!("[remove] Key {} not found in dict.", key);
         };
         let id = self.dict.get(key).unwrap().clone();
@@ -37,14 +48,17 @@ impl Dict {
         self.queue.push_back(id);
     }
 
-    pub fn contains2(&self, key: &String) -> bool {
+    /// Returns true if the `Dict` contains an entry `key`.
+    pub fn contains(&self, key: &String) -> bool {
         return self.dict.contains_key(key);
     }
 
-    pub fn get2(&self, key: &String) -> Option<&u32> {
+    /// Returns a reference to the id of `key`.
+    pub fn get(&self, key: &String) -> Option<&u32> {
         return self.dict.get(key);
     }
 
+    /// Returns the key of the value `value`.
     pub fn key_by_value(&self, value: &u32) -> Option<String> {
         return self
             .dict
@@ -53,8 +67,9 @@ impl Dict {
             .map(|(k, _)| k.to_string());
     }
 
+    /// Updates the key of an entry containing `old` to `new`.
     pub fn update_key(&mut self, new: &String, old: &String) {
-        let val = self.get2(old).unwrap().clone();
+        let val = self.get(old).unwrap().clone();
         self.dict.remove(old);
         self.dict.insert(new.to_string(), val);
     }

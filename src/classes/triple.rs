@@ -1,3 +1,5 @@
+use super::dict::Dict;
+
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
 #[derive(Clone)]
@@ -21,20 +23,20 @@ impl Triple {
         let pred_str = String::from(line_splits[1]);
         let obj_str = String::from(line_splits[2]);
 
-        if !dict.contains2(&sub_str) {
-            dict.add2(&sub_str);
+        if !dict.contains(&sub_str) {
+            dict.add(&sub_str);
         }
-        if !dict.contains2(&pred_str) {
-            dict.add2(&pred_str);
+        if !dict.contains(&pred_str) {
+            dict.add(&pred_str);
         }
-        if !dict.contains2(&obj_str) {
-            dict.add2(&obj_str);
+        if !dict.contains(&obj_str) {
+            dict.add(&obj_str);
         }
 
         Triple {
-            sub: *dict.get2(&sub_str).unwrap(),
-            pred: *dict.get2(&pred_str).unwrap(),
-            obj: *dict.get2(&obj_str).unwrap(),
+            sub: *dict.get(&sub_str).unwrap(),
+            pred: *dict.get(&pred_str).unwrap(),
+            obj: *dict.get(&obj_str).unwrap(),
             is_type: is_type_pred,
         }
     }
