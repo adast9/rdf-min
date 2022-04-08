@@ -8,9 +8,11 @@ use std::io::{self, BufRead};
 use std::path::Path;
 use std::path::PathBuf;
 
-use crate::parser::dict::Dict;
-use crate::parser::meta_parser::{MetaFile, NodeInfo};
-use crate::parser::triple::Triple;
+use crate::classes::dict::Dict;
+use crate::classes::meta::Meta;
+use crate::classes::node_info::NodeInfo;
+use crate::classes::triple::Triple;
+use crate::parser::meta::MetaFile;
 
 fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     let mut file = OpenOptions::new()
@@ -49,12 +51,8 @@ pub fn write_dict(path: &PathBuf, dict: &Dict) -> Result<(), Error> {
     Ok(write_lines(path, &dict.to_strings())?)
 }
 
-pub fn write_meta(
-    path: &PathBuf,
-    supernodes: &HashMap<u32, Vec<u32>>,
-    nodes: &HashMap<u32, NodeInfo>,
-) -> Result<(), Error> {
-    let data = MetaFile::new(supernodes, nodes);
+pub fn write_meta(path: &PathBuf, meta: &Meta) -> Result<(), Error> {
+    let data = meta.serialize();
     let file_str = serde_json::to_string(&data)?;
     Ok(write_lines(path, &vec![file_str])?)
 }

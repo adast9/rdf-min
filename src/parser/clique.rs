@@ -1,8 +1,8 @@
 use crate::classes::{clique::CliqueCollection, triple::Triple};
 
 pub fn create_cliques(triples: &Vec<Triple>) -> (CliqueCollection, CliqueCollection) {
-    let sc = CliqueCollection::new();
-    let tc = CliqueCollection::new();
+    let mut sc = CliqueCollection::new();
+    let mut tc = CliqueCollection::new();
 
     for triple in triples {
         sc.new_triple(&triple.sub, &triple.pred);

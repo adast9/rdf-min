@@ -1,5 +1,5 @@
 use crate::classes::meta::Meta;
-use crate::classes::node_info::NodeInfo;
+use crate::classes::meta::NodeInfo;
 use crate::Config;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -14,7 +14,7 @@ pub fn parse_meta(config: &Config) -> Result<Meta, io::Error> {
     } else {
         let file_str = fs::read_to_string(&config.meta_folder_path.join("meta.json"))?;
         let file_data: MetaFile = serde_json::from_str(&file_str)?;
-        Ok(Meta::from_file(file_data))
+        Ok(Meta::deserialize(file_data))
     }
 }
 

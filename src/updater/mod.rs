@@ -1,4 +1,4 @@
-use crate::parser::{clique::Clique, triple::Triple, MetaData};
+use crate::classes::{clique::CliqueCollection, dataset::Dataset, meta::Meta};
 
 use self::{insertions::CliqueChange, triple_updater::update_changes};
 pub mod funcs;
@@ -6,23 +6,22 @@ mod insertions;
 mod triple_updater;
 
 pub fn run(
-    stuff: &mut MetaData,
-    insertions: Vec<Triple>,
-    _deletions: Vec<Triple>,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
+    dataset: &mut Dataset,
+    meta: &mut Meta,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
 ) {
-    handle_insersertions(stuff, insertions, sc, tc);
+    handle_insersertions(dataset, meta, sc, tc);
 }
 
 fn handle_insersertions(
-    stuff: &mut MetaData,
-    insertions: Vec<Triple>,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
+    dataset: &mut Dataset,
+    meta: &mut Meta,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
 ) {
-    for ins in insertions {
-        let changes = insertions::get_changes(stuff, &ins, sc, tc);
+    for ins in dataset.insertions.data_triples {
+        let changes = insertions::get_changes(&ins, dataset, meta, sc, tc);
 
         if changes.is_empty() {
             continue;
@@ -34,10 +33,9 @@ fn handle_insersertions(
 }
 
 pub fn get_super_nodes(
-    stuff: &mut MetaData,
     changes: Vec<CliqueChange>,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
 ) -> Vec<Vec<u32>> {
     if changes.len() == 1 {
         return handle_clique_change(stuff, changes[0].clone(), sc, tc);
@@ -95,10 +93,9 @@ pub fn get_super_nodes(
 }
 
 fn handle_clique_change(
-    stuff: &mut MetaData,
     change: CliqueChange,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
 ) -> Vec<Vec<u32>> {
     let mut super_nodes: Vec<Vec<u32>> = Vec::new();
 

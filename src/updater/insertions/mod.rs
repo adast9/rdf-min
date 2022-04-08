@@ -1,132 +1,52 @@
-use crate::parser::{clique::Clique, meta::NodeInfo, triple::Triple, MetaData};
+use crate::classes::{
+    clique::{CliqueChange, CliqueCollection},
+    dataset::Dataset,
+    meta::Meta,
+    triple::Triple,
+};
 
-use super::funcs::index_of_empty_clique;
 mod all_known;
 mod all_unknown;
 mod pred_unknown;
 
-#[derive(Clone)]
-pub struct CliqueChange {
-    pub clique_index: usize,
-    pub new_nodes: Vec<u32>,
-    pub is_source: bool,
-}
-
-impl CliqueChange {
-    pub fn new(clique_index: usize, new_nodes: Vec<u32>, is_source: bool) -> Self {
-        Self {
-            clique_index,
-            new_nodes,
-            is_source,
-        }
-    }
-}
-
 pub fn get_changes(
-    stuff: &mut MetaData,
     triple: &Triple,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
+    dataset: &mut Dataset,
+    meta: &mut Meta,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
 ) -> Vec<CliqueChange> {
-    let (sub_known, pred_known, obj_known) = are_they_known(stuff, triple);
+    let (sub_known, pred_known, obj_known) = are_they_known(triple, meta, sc);
 
-    // HER KOMMER ET VILDT FORSØG PÅ CRAZY!!!!!
     if !sub_known {
-        // sc.new_node(triple.sub);
-        // tc.new_node(triple.sub);
-        // all_nodes.new_node(triple, is_sub=true);
-        let sc_empty = index_of_empty_clique(sc);
-        let tc_empty = index_of_empty_clique(tc);
-        sc[sc_empty].nodes.push(triple.sub);
-        tc[tc_empty].nodes.push(triple.sub);
-        stuff.index_map.insert(triple.sub, [sc_empty, tc_empty]);
-        stuff.nodes.insert(
-            triple.sub,
-            NodeInfo::new(&None, &vec![], &vec![vec![triple.pred, triple.obj]]),
-        );
+        sc.add_node_to_empty_clique(&triple.sub);
+        tc.add_node_to_empty_clique(&triple.sub);
+        meta.new_node(triple, true);
     } else {
-        // all_nodes.add_outgoing(triple);
-
-        stuff
-            .nodes
-            .get_mut(&triple.sub)
-            .unwrap()
-            .outgoing
-            .push(vec![triple.pred, triple.obj]);
+        meta.add_outgoing(triple);
     }
+
     if !obj_known {
-        // sc.new_node(triple.obj);
-        // tc.new_node(triple.obj);
-        // all_nodes.new_node(triple, is_sub=false);
-        let sc_empty = index_of_empty_clique(sc);
-        let tc_empty = index_of_empty_clique(tc);
-        sc[sc_empty].nodes.push(triple.obj);
-        tc[tc_empty].nodes.push(triple.obj);
-        stuff.index_map.insert(triple.obj, [sc_empty, tc_empty]);
-        stuff.nodes.insert(
-            triple.obj,
-            NodeInfo::new(&None, &vec![vec![triple.pred, triple.sub]], &vec![]),
-        );
+        sc.add_node_to_empty_clique(&triple.obj);
+        tc.add_node_to_empty_clique(&triple.obj);
+        meta.new_node(triple, false);
     } else {
-        // all_nodes.add_incoming(triple);
-        stuff
-            .nodes
-            .get_mut(&triple.obj)
-            .unwrap()
-            .outgoing
-            .push(vec![triple.pred, triple.sub]);
+        meta.add_incoming(triple);
     }
+
     if !pred_known {
-        // sc.new_pred(triple.pred);
-        // tc.new_pred(triple.pred);
-        sc.push(Clique::new(&vec![triple.pred], &vec![]));
-        tc.push(Clique::new(&vec![triple.pred], &vec![]));
-        stuff
-            .index_map
-            .insert(triple.pred, [sc.len() - 1, tc.len() - 1]);
+        sc.new_pred(&triple.pred);
+        tc.new_pred(&triple.pred);
     }
 
-    // Dirty dirty
+    dataset.add_triple(triple.clone(), &meta);
 
-    // triples.add(triple);
-    let mut new_sub = triple.sub;
-    let mut new_obj = triple.obj;
-    if let Some(p) = stuff.nodes.get(&triple.sub).unwrap().parent {
-        new_sub = p;
-    }
-    if let Some(p) = stuff.nodes.get(&triple.obj).unwrap().parent {
-        new_obj = p;
-    }
-    stuff.triples.push(Triple {
-        sub: new_sub,
-        pred: triple.pred,
-        obj: new_obj,
-        is_type: triple.is_type,
-    });
-
-    // all_known::insert(stuff, triple);
-    let mut changes: Vec<CliqueChange> = Vec::new();
-    if let Some(change) = all_known::insert(stuff, triple, sc, tc, true) {
-        changes.push(change);
-    }
-    if let Some(change) = all_known::insert(stuff, triple, tc, sc, false) {
-        changes.push(change);
-    }
-
-    return changes;
+    return all_known::insert_triple(triple, dataset, meta, sc, tc);
 }
 
-fn are_they_known(stuff: &MetaData, triple: &Triple) -> (bool, bool, bool) {
-    //let sub_known = all_nodes.exists(&triple.sub)
-    //let obj_known = all_nodes.exists(&triple.obj)
-    //let pred_known = sc.pred_exists(&triple.pred)
-
-    let sub_is_known =
-        stuff.supernodes.contains_key(&triple.sub) || stuff.nodes.contains_key(&triple.sub);
-    let obj_is_known =
-        stuff.supernodes.contains_key(&triple.obj) || stuff.nodes.contains_key(&triple.obj);
-
-    let pred_is_known = stuff.index_map.contains_key(&triple.pred);
-
-    return (sub_is_known, pred_is_known, obj_is_known);
+fn are_they_known(triple: &Triple, meta: &Meta, clique: &CliqueCollection) -> (bool, bool, bool) {
+    let sub_known = meta.contains(&triple.sub);
+    let obj_known = meta.contains(&triple.obj);
+    let pred_known = clique.contains_pred(&triple.pred);
+    return (sub_known, pred_known, obj_known);
 }

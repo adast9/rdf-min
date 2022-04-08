@@ -2,7 +2,7 @@ use super::dict::Dict;
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Triple {
     pub sub: u32,
     pub pred: u32,
@@ -11,7 +11,17 @@ pub struct Triple {
 }
 
 impl Triple {
-    pub fn new(line: &String, dict: &mut Dict) -> Self {
+    pub fn new(sub: u32, pred: u32, obj: u32, is_type: bool) -> Self {
+        Self {
+            sub,
+            pred,
+            obj,
+            is_type,
+        }
+    }
+
+    pub fn from_string(line: &String, dict: &mut Dict) -> Self {
+        //todo: CLEAN UP THIS SHIT THAT IS WRONG AND DOESN'T WORK PROPERLY AND ISN'T DRY AT ALL
         let line_splits: Vec<&str> = line.split(" ").collect();
         let mut is_type_pred = false;
 
@@ -56,6 +66,15 @@ impl Triple {
 
         return line;
     }
+
+    pub fn rename_node(&mut self, old: &u32, new: &u32) {
+        if self.sub == *old {
+            self.sub = *new;
+        }
+        if self.obj == *old {
+            self.obj = *new;
+        }
+    }
 }
 
 pub struct TripleCollection {
@@ -69,7 +88,7 @@ impl TripleCollection {
         let mut type_triples: Vec<Triple> = Vec::new();
 
         for l in triples {
-            let t = Triple::new(&l, dict);
+            let t = Triple::from_string(&l, dict);
             if t.is_type {
                 type_triples.push(t);
             } else {
@@ -80,6 +99,12 @@ impl TripleCollection {
         Self {
             data_triples,
             type_triples,
+        }
+    }
+
+    pub fn add_data_triple(&mut self, triple: &Triple) {
+        if !self.data_triples.contains(triple) {
+            self.data_triples.push(*triple);
         }
     }
 }

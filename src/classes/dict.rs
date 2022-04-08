@@ -8,7 +8,7 @@ pub struct Dict {
 impl Dict {
     /// Creates an new `Dict`.
     pub fn new(dict_lines: &Vec<String>) -> Self {
-        let dict = Dict::empty();
+        let mut dict = Dict::empty();
         for l in dict_lines {
             dict.add(&l);
         }
@@ -99,5 +99,41 @@ impl Dict {
 
     fn next_id(&self) -> u32 {
         return self.dict.len() as u32 + self.queue.len() as u32 + 1;
+    }
+
+    pub fn remove_from_name(&mut self, snode: &u32, node: &u32) {
+        let mut snode_string = self.key_by_value(snode).unwrap();
+        let node_string = Dict::get_name(&self.key_by_value(node).unwrap());
+
+        let index = snode_string.find(&node_string).unwrap();
+
+        let old_key = snode_string.clone();
+        if (index + node_string.len() + 1 == snode_string.len()) {
+            snode_string.replace_range((index - 1..index + node_string.len()), "");
+        } else {
+            snode_string.replace_range((index..index + node_string.len() + 1), "");
+        }
+
+        self.update_key(&snode_string, &old_key);
+    }
+
+    fn get_name(string: &String) -> String {
+        let mut name = String::new();
+        let mut chars = string.chars();
+        while let Some(c) = chars.next_back() {
+            if c == '/' {
+                break;
+            }
+            if c == '>' {
+                continue;
+            }
+            name = c.to_string() + &name;
+        }
+        return name;
+    }
+
+    pub fn remove_by_value(&mut self, value: &u32) {
+        let key = self.key_by_value(value).unwrap();
+        self.remove(&key);
     }
 }

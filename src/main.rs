@@ -2,7 +2,7 @@ use std::{env, fs, path::PathBuf, process};
 
 mod classes;
 mod parser;
-mod tests;
+// mod tests;
 mod updater;
 mod util;
 
@@ -16,37 +16,37 @@ fn main() {
 
     let (mut dataset, mut meta, mut sc, mut tc) = parser::run(&config).unwrap();
 
-    updater::run(&mut stuff, additions, deletions, &mut sc, &mut tc);
+    updater::run(&mut dataset, &mut meta, &mut sc, &mut tc);
 
-    util::io::write_triples(
-        &config.dataset_path.parent().unwrap().join("summary.nt"),
-        &stuff.triples,
-        &stuff.dict,
-    )
-    .unwrap();
+    // util::io::write_triples(
+    //     &config.dataset_path.parent().unwrap().join("summary.nt"),
+    //     &stuff.triples,
+    //     &stuff.dict,
+    // )
+    // .unwrap();
 
-    if config.use_fast {
-        fs::create_dir(&config.meta_folder_path).unwrap();
-    }
+    // if config.use_fast {
+    //     fs::create_dir(&config.meta_folder_path).unwrap();
+    // }
 
-    util::io::write_dict(&config.meta_folder_path.join("dict"), &stuff.dict).unwrap();
+    // util::io::write_dict(&config.meta_folder_path.join("dict"), &stuff.dict).unwrap();
 
-    util::io::write_meta(
-        &config.meta_folder_path.join("meta.json"),
-        &stuff.supernodes,
-        &stuff.nodes,
-    )
-    .unwrap();
+    // util::io::write_meta(
+    //     &config.meta_folder_path.join("meta.json"),
+    //     &stuff.supernodes,
+    //     &stuff.nodes,
+    // )
+    // .unwrap();
 
-    println!("SOURCE CLIQUES");
-    util::print::cliques_string(&sc, &stuff.dict);
-    println!("");
-    println!("TARGET CLIQUES");
-    util::print::cliques_string(&tc, &stuff.dict);
-
+    // println!("SOURCE CLIQUES");
+    // util::print::cliques_string(&sc, &stuff.dict);
     // println!("");
-    // println!("TRIPLES");
-    // util::print::triples_string(&stuff.triples, &stuff.dict);
+    // println!("TARGET CLIQUES");
+    // util::print::cliques_string(&tc, &stuff.dict);
+
+    // // println!("");
+    // // println!("TRIPLES");
+    // // util::print::triples_string(&stuff.triples, &stuff.dict);
 }
 
 pub struct Config {
