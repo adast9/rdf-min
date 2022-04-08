@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::parser::{clique::Clique, meta_parser::NodeInfo, triple::Triple, MetaData};
 
-use super::funcs::{remove_from_supernode, remove_parent, to_single_node, get_node_index};
+use super::{funcs::{remove_from_supernode, remove_parent, to_single_node, get_node_index}, intersects};
 
 pub fn delete_triple(
     deletions: &Vec<Triple>,
@@ -21,42 +21,211 @@ fn handle_deletion(
     source_clique: &mut Vec<Clique>,
     target_clique: &mut Vec<Clique>,
 ) {
-    let sub = metadata.nodes.get(&triple.sub).unwrap().clone();
-    let obj = metadata.nodes.get(&triple.obj).unwrap().clone();
-    let p_sub = sub.parent;
-    let p_obj = obj.parent;
-
-    if let Some(p_sub) = p_sub {
-        let supernode_id_for_sub = metadata.supernodes.get(&p_sub).unwrap().clone()[0];
-        remove_from_supernode(metadata, supernode_id_for_sub, &p_sub);
-        handle_split(metadata, &p_sub);
-        handle_singleton_supernodes(metadata, source_clique, target_clique, &p_sub);
+    // Case_1: if sub has a parent else sub has no parent
+    if let Some(_p_sub) = metadata.nodes.get(&triple.sub).unwrap().parent {
+        let supernode_id_sub = metadata.supernodes.get(&_p_sub).unwrap().clone()[0];
+        handle_parental_nodes(metadata, supernode_id_sub, &_p_sub);
+        // If a supernode only consists of a single node, then remove clique
+        handle_singleton_supernodes(metadata, source_clique, target_clique, &_p_sub);
     } else {
-        // Remove outgoing edges from sub
-        remove_inc_or_out_edges(&mut metadata.nodes, triple, true);
-        // Remove node from source clique
-        remove_preds_in_clique(&mut metadata, sub, triple, source_clique, true);
-
+        handle_non_parental_nodes(metadata, triple, source_clique, true);
     }
-    if let Some(p_obj) = p_obj {
-        let supernode_id_for_obj = metadata.supernodes.get(&p_obj).unwrap().clone()[0];
-        remove_from_supernode(metadata, supernode_id_for_obj, &p_obj);
-        handle_split(metadata, &p_obj);
-        handle_singleton_supernodes(metadata, source_clique, target_clique, &p_obj);
+    // Case_1: if obj has a parent else obj has no parent
+    if let Some(_p_obj) = metadata.nodes.get(&triple.obj).unwrap().parent {
+        let supernode_id_obj = metadata.supernodes.get(&_p_obj).unwrap().clone()[0];
+        handle_parental_nodes(metadata, supernode_id_obj, &_p_obj);
+        // If a supernode only consists of a single node, then remove clique
+        handle_singleton_supernodes(metadata, source_clique, target_clique, &_p_obj);
     } else {
-        remove_inc_out_edges(&mut metadata.nodes, triple, false);
+        handle_non_parental_nodes(metadata, triple, target_clique, false);
     }
+}
+
+fn handle_parental_nodes(
+    metadata: &mut MetaData,
+    supernode_id: u32,
+    nodes_of_parent: &u32,
+) {
+    // Remove node from a supernode and sets parent to None
+    remove_from_supernode(metadata, supernode_id, &nodes_of_parent);
+    // Checks for intersections for incoming or outgoing edges
+    handle_split(metadata, &nodes_of_parent);
+}
+
+fn handle_non_parental_nodes(
+    metadata: &mut MetaData,
+    triple: &Triple,
+    clique: &mut Vec<Clique>,
+    is_sub: bool,
+) {
+    let triple_node = if is_sub { &triple.sub } else { &triple.obj};
+    // Remove edges from sub or obj
+    remove_edge(&mut metadata.nodes, triple, is_sub);
+    // Remove node from clique
+    remove_preds_in_clique(metadata, triple, clique, is_sub);
+    // Remove if edges of sub or obj are empty
+    handle_empty_edge(metadata, &triple_node, clique, is_sub);
+    // Group overlapping nodes in clique and remove the single nodes from the clique
+    handle_overlaps(metadata, &triple_node, clique);
+}
+
+fn handle_overlaps(
+    metadata: &mut MetaData,
+    node: &u32,
+    clique: &mut Vec<Clique>,
+) {
+    let node_index = get_node_index(metadata, &node, 0);
+    let mut new_clique_nodes: Vec<Vec<u32>> = Vec::new();
+    new_clique_nodes.push(clique[node_index].nodes.clone());
+
+    let mut nodes = clique[node_index].nodes.clone();
+
+    for node in &mut nodes {
+        let mut overlapping: Vec<u32> = Vec::new();
+        for (index, new_clique_node) in &mut new_clique_nodes.iter().enumerate() {
+            generate_new_clique_node(new_clique_node, node, &mut overlapping, 
+                                    metadata, index, &mut new_clique_nodes);
+        }
+    }
+}
+
+fn generate_new_clique_node(
+    new_clique_node: &Vec<u32>, 
+    node: &mut u32, 
+    overlapping: &mut Vec<u32>, 
+    metadata: &mut MetaData, 
+    index: usize, 
+    new_clique_nodes: &mut Vec<Vec<u32>>
+) {
+    for cnode in new_clique_node {
+        if  node == cnode {
+            continue;
+        }
+        *overlapping = handle_case_for_overlaps(node, cnode, metadata, overlapping, index);
+    }
+    // Group overlapping nodes in new_clique_nodes and remove the single nodes from new_clique_nodes
+    merge_nodes_for_clique_overlaps(&*overlapping, new_clique_nodes);
+}
+
+// Group overlapping nodes in new_clique_nodes and remove the single nodes from new_clique_nodes
+fn merge_nodes_for_clique_overlaps(
+    overlapping: &Vec<u32>, 
+    new_clique_nodes: &mut Vec<Vec<u32>>
+) {
+    if overlapping.len() > 0 {
+        let mut new_clique_node: Vec<u32> = Vec::new();
+        for (j, _o) in overlapping.iter().enumerate() {
+            new_clique_node.append(&mut new_clique_nodes[j]);
+        }
+        new_clique_nodes.push(new_clique_node);
+    }
+}
+
+// Identifies overlaps in different cases for parental and non-parental nodes
+fn handle_case_for_overlaps(
+    node: &mut u32, 
+    cnode: &u32, 
+    metadata: &mut MetaData, 
+    overlapping: &mut Vec<u32>, 
+    index: usize
+) -> Vec<u32> {
+
+    if check_has_parent(node, metadata) && check_has_parent(cnode, metadata) {
+        return identify_overlaps_for_parent(metadata, node, cnode, overlapping, index);
+
+    } else if check_has_parent(node, metadata) {
+        let cnode_outgoing_preds = get_preds_in_edges(&metadata.nodes.get(cnode).unwrap().outgoing);
+        return identify_overlaps(metadata, node, cnode_outgoing_preds, overlapping, index);    
+
+    } else if check_has_parent(cnode, metadata) {
+        let node_outgoing_preds = get_preds_in_edges(&metadata.nodes.get(node).unwrap().outgoing);
+        return identify_overlaps(metadata, cnode, node_outgoing_preds, overlapping, index);
+        
+    } else {
+        let node_outgoing_preds = get_preds_in_edges(&metadata.nodes.get(node).unwrap().outgoing);
+        let cnode_outgoing_preds = get_preds_in_edges(&metadata.nodes.get(&cnode).unwrap().outgoing);
+
+        if intersects(&node_outgoing_preds,&cnode_outgoing_preds) {
+            overlapping.push(index as u32);
+        }
+        return overlapping.clone();
+    }
+}
+
+// When both nodes have parents, we need to check for overlaps between the parents
+fn identify_overlaps_for_parent(
+    metadata: &MetaData, 
+    node1: &u32, 
+    node2: &u32, 
+    overlapping: &mut Vec<u32>, 
+    index: usize
+) -> Vec<u32>{
+    let snode = metadata.supernodes.get(&node1).unwrap().clone();
+    let cnode = metadata.supernodes.get(&node2).unwrap().clone();
+
+    for n in snode {
+        let node_outgoing_preds = get_preds_in_edges(&metadata.nodes.get(&n).unwrap().outgoing);
+        for c in &cnode {
+            let cnode_outgoing_preds = get_preds_in_edges(&metadata.nodes.get(&c).unwrap().outgoing);
+            if intersects(&node_outgoing_preds,&cnode_outgoing_preds) {
+                overlapping.push(index as u32);
+            }
+        }
+    }
+    return overlapping.clone();
+}
+
+// For non-parental, we need to check for overlaps between singleton nodes
+fn identify_overlaps(
+    metadata: &MetaData, 
+    node: &u32, 
+    outgoing_preds: Vec<u32>, 
+    overlapping: &mut Vec<u32>, 
+    index: usize
+) -> Vec<u32> {
+    let snode = metadata.supernodes.get(&node).unwrap().clone();
+    
+    let node_outgoing_preds = remove_duplicates(&snode);
+
+    if intersects(&node_outgoing_preds,&outgoing_preds) {
+        overlapping.push(index as u32);
+    }
+    return overlapping.clone();
+}
+
+// Remove duplicates from node_outgoing_preds
+fn remove_duplicates(snode: &Vec<u32>) -> Vec<u32> {
+    let mut node_outgoing_preds_unique: Vec<u32> = Vec::new();
+    for p in snode {
+        if !node_outgoing_preds_unique.contains(p) {
+            node_outgoing_preds_unique.push(*p);
+        }
+    }
+    return node_outgoing_preds_unique;
+}
+
+fn check_has_parent(
+    node: &u32, 
+    metadata: &MetaData
+) -> bool {
+    if let Some(_p) = metadata.nodes.get(node).unwrap().parent {
+        return true;
+    }
+    return false;
 }
 
 /// Removes incoming or outgoing edges from `node`.
-fn remove_triple_from_node(nodes: &mut HashMap<u32, NodeInfo>, triple: &Triple) {
-    remove_inc_out_edges(nodes, triple, true);
-    remove_inc_out_edges(nodes, triple, false);
+fn remove_triple_from_node(
+    nodes: &mut HashMap<u32, NodeInfo>, 
+    triple: &Triple
+) {
+    remove_edge(nodes, triple, true);
+    remove_edge(nodes, triple, false);
 }
 
+/// Removes predicate `pred` from a `clique`.
 fn remove_preds_in_clique(
     metadata: &mut MetaData,
-    nodeinfo: &NodeInfo,
     triple: &Triple,
     clique: &mut Vec<Clique>,
     is_sub: bool
@@ -64,29 +233,52 @@ fn remove_preds_in_clique(
     let node = if is_sub { triple.sub } else { triple.obj };
 
     let node_index = get_node_index(metadata, &node, 0);
-    let outgoing_edges = group_outgoing_edges(nodeinfo);
+    let edges = group_edges(metadata.nodes.get(&triple.sub).unwrap(), is_sub);
 
     if clique[node_index].nodes.len().clone() == 1 {
         // Check if clique[node_index].preds contains outgoing_edges
         for i in 0..clique[node_index].preds.len() {
-            clique[node_index].preds.retain(|x| x != &outgoing_edges[i]);
+            clique[node_index].preds.retain(|x| x != &edges[i]);
         }
     }
 }
 
-/// Group all outgoing edges into one vector
-fn group_outgoing_edges(nodeinfo: &NodeInfo) -> Vec<u32> {
-    let mut outgoing_edges: Vec<u32> = Vec::new();
-    for edge in &mut nodeinfo.outgoing.clone() {
-        outgoing_edges.append(edge);
+/// Group all outgoing (true) or incoming (false) edges into one vector
+fn group_edges(
+    nodeinfo: &NodeInfo, 
+    is_outgoing: bool
+) -> Vec<u32> {
+    let mut edges: Vec<u32> = Vec::new();
+    let nodeinfo_edge = if is_outgoing { &nodeinfo.outgoing } else { &nodeinfo.incoming };
+
+    for edge in &mut nodeinfo_edge.clone() {
+        edges.append(edge);
     }
-    return outgoing_edges;
+    return edges;
 }
 
-// If empty then move sub in source clique to empty clique
+// CHECK FOR CORRECTNESS
+// If edge is empty, then move node in clique to empty clique
+fn handle_empty_edge(
+    metadata: &mut MetaData,
+    node: &u32,
+    clique: &mut Vec<Clique>,
+    is_outgoing: bool
+) {
+    let nodeinfo = metadata.nodes.get(node).unwrap();
+    if is_edge_empty(nodeinfo, is_outgoing) {
+        let sc_index = metadata.index_map.get(node).unwrap()[0];
+        clique[0].add_node(&(sc_index as u32));
+        clique.remove(sc_index);
+    } else {
+        let tc_index = metadata.index_map.get(node).unwrap()[1];
+        clique[0].add_node(&(tc_index as u32));
+        clique.remove(tc_index);
+    }
+}
 
 // Check if edges is empty
-fn is_edges_empty(nodeinfo: &NodeInfo, is_outgoing: bool) -> bool {
+fn is_edge_empty(nodeinfo: &NodeInfo, is_outgoing: bool) -> bool {
     let edges = if is_outgoing { &nodeinfo.outgoing } else { &nodeinfo.incoming };
 
     if edges.is_empty() {
@@ -95,7 +287,7 @@ fn is_edges_empty(nodeinfo: &NodeInfo, is_outgoing: bool) -> bool {
     return false;
 }
 
-fn remove_inc_or_out_edges(
+fn remove_edge(
     nodes: &mut HashMap<u32, NodeInfo>,
     triple: &Triple,
     is_sub: bool,
@@ -127,17 +319,35 @@ fn handle_singleton_supernodes(
 }
 
 /// Handles the split of a supernode.
-fn handle_split(metadata: &mut MetaData, node: &u32) {
+fn handle_split(
+    metadata: &mut MetaData, 
+    node: &u32
+) {
     let nodeinfo = metadata.nodes.get(node).unwrap();
     let supernode_id = nodeinfo.parent.unwrap();
     let mut snode = metadata.supernodes.get(&supernode_id).unwrap().clone();
-    let node_inc = nodeinfo.incoming.clone();
-    let node_out = nodeinfo.outgoing.clone();
+    let mut node_out_preds = Vec::new();
+    let mut node_inc_preds = Vec::new();
+
+    // Get every pred in `outgoing`
+    for edge in &nodeinfo.outgoing.clone() {
+        node_out_preds.push(edge[0]);
+    }
+    // Get every pred in `incoming`
+    for edge in &nodeinfo.incoming.clone() {
+        node_inc_preds.push(edge[0]);
+    }
+
     snode.retain(|x| x != node);
 
     let (rest_inc, rest_out) = get_inc_and_out(&metadata.nodes, &snode);
 
-    if intersects_for_vec_vec(&node_inc, &rest_inc) || intersects_for_vec_vec(&node_out, &rest_out)
+    let rest_out_preds = get_preds_in_edges(&rest_out);
+    let rest_inc_preds = get_preds_in_edges(&rest_inc);
+
+    // Checks if there is an intersection between the incoming of the pivotal node and the rest of the supernode
+    // It checks also for the outgoing case in similar fashion.
+    if intersects(&node_inc_preds, &rest_inc_preds) || intersects(&node_out_preds, &rest_out_preds)
     {
         // if there is no intersection, remove the supernode
         remove_from_supernode(metadata, supernode_id, node);
@@ -160,7 +370,24 @@ fn get_inc_and_out(
     return (inc, out);
 }
 
-fn intersects_for_vec_vec(v1: &Vec<Vec<u32>>, v2: &Vec<Vec<u32>>) -> bool {
+// Get each pred for each edge
+fn get_preds_in_edges(
+    edges: &Vec<Vec<u32>>
+) -> Vec<u32> {
+    let mut preds: Vec<u32> = Vec::new();
+    for edge in edges {
+        if !preds.contains(&edge[0]){
+            preds.push(edge[0]);
+        }
+    }
+    return preds;
+}
+
+/// Returns `true` if there is an intersection between two vectors of vectors of u32s else `false`.
+fn intersects_for_vec_vec(
+    v1: &Vec<Vec<u32>>, 
+    v2: &Vec<Vec<u32>>
+) -> bool {
     for n in v1 {
         if v2.contains(&n) {
             return true;
