@@ -139,6 +139,14 @@ impl Dataset {
             }
         }
     }
+
+    pub fn key_by_value(&self, value: &u32) -> Option<String> {
+        return self.dict.key_by_value(value);
+    }
+
+    pub fn dict_strings(&self) -> Vec<String> {
+        return self.dict.to_strings();
+    }
 }
 
 fn remove_angle_bracket_at_end(string: &String) -> &str {

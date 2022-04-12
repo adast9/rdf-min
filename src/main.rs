@@ -5,6 +5,7 @@ mod parser;
 // mod tests;
 mod updater;
 mod util;
+mod writer;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -17,26 +18,7 @@ fn main() {
     let (mut dataset, mut meta, mut sc, mut tc) = parser::run(&config).unwrap();
 
     updater::run(&mut dataset, &mut meta, &mut sc, &mut tc);
-
-    // util::io::write_triples(
-    //     &config.dataset_path.parent().unwrap().join("summary.nt"),
-    //     &stuff.triples,
-    //     &stuff.dict,
-    // )
-    // .unwrap();
-
-    // if config.use_fast {
-    //     fs::create_dir(&config.meta_folder_path).unwrap();
-    // }
-
-    // util::io::write_dict(&config.meta_folder_path.join("dict"), &stuff.dict).unwrap();
-
-    // util::io::write_meta(
-    //     &config.meta_folder_path.join("meta.json"),
-    //     &stuff.supernodes,
-    //     &stuff.nodes,
-    // )
-    // .unwrap();
+    writer::run(&config, &dataset, &meta);
 
     // println!("SOURCE CLIQUES");
     // util::print::cliques_string(&sc, &stuff.dict);

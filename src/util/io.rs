@@ -1,3 +1,4 @@
+use crate::classes::dataset::Dataset;
 use io::{BufReader, Error};
 use std::fs::remove_file;
 use std::fs::File;
@@ -24,13 +25,13 @@ fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn write_triples(path: &PathBuf, triples: &Vec<Triple>, dict: &Dict) -> Result<(), Error> {
+pub fn write_triples(path: &PathBuf, dataset: &Dataset) -> Result<(), Error> {
     let mut triple_strings: Vec<String> = Vec::new();
 
-    for triple in triples {
-        let sub_string = dict.key_by_value(&triple.sub).unwrap();
-        let pred_string = dict.key_by_value(&triple.pred).unwrap();
-        let obj_string = dict.key_by_value(&triple.obj).unwrap();
+    for triple in &dataset.triples.data_triples {
+        let sub_string = dataset.key_by_value(&triple.sub).unwrap();
+        let pred_string = dataset.key_by_value(&triple.pred).unwrap();
+        let obj_string = dataset.key_by_value(&triple.obj).unwrap();
 
         let triple_string = format!("{} {} {} .", sub_string, pred_string, obj_string);
 
@@ -41,11 +42,11 @@ pub fn write_triples(path: &PathBuf, triples: &Vec<Triple>, dict: &Dict) -> Resu
     Ok(write_lines(path, &triple_strings)?)
 }
 
-pub fn write_dict(path: &PathBuf, dict: &Dict) -> Result<(), Error> {
+pub fn write_dict(path: &PathBuf, dataset: &Dataset) -> Result<(), Error> {
     if path.exists() {
         remove_file(path)?;
     }
-    Ok(write_lines(path, &dict.to_strings())?)
+    Ok(write_lines(path, &dataset.dict_strings())?)
 }
 
 pub fn write_meta(path: &PathBuf, meta: &Meta) -> Result<(), Error> {
