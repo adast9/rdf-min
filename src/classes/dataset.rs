@@ -100,4 +100,42 @@ impl Dataset {
         }
         self.dict.remove_by_value(p);
     }
+
+    /// Removes all nodes in `snode` and inserts `new_node`.
+    pub fn new_snode(self, snode: &Vec<u32>) -> u32 {
+        let mut snode_string = self.dict.key_by_value(&snode[0]).unwrap();
+        snode_string = remove_angle_bracket_at_end(&snode_string).to_string();
+
+        for node in snode.iter().skip(1) {
+            let node_string = self.dict.key_by_value(node).unwrap();
+            snode_string.push_str("_");
+            snode_string.push_str(&Dict::get_name(&node_string));
+        }
+
+        snode_string.push_str(">");
+        let id = self.dict.add(&snode_string);
+        self.rename_triples(snode, &id);
+        return id;
+    }
+
+    /// Replaces all occurences of a node in `snode` with `new_node` in `triples`.
+    fn rename_triples(&mut self, old: &Vec<u32>, new: &u32) {
+        for t in self.triples.data_triples {
+            for n in old {
+                t.rename_node(&n, new);
+            }
+        }
+        for t in self.triples.type_triples {
+            for n in old {
+                t.rename_node(&n, new);
+            }
+        }
+    }
+}
+
+fn remove_angle_bracket_at_end(string: &String) -> &str {
+    let mut chars = string.chars();
+    chars.next_back();
+
+    return chars.as_str();
 }

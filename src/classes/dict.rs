@@ -117,7 +117,7 @@ impl Dict {
         self.update_key(&snode_string, &old_key);
     }
 
-    fn get_name(string: &String) -> String {
+    pub fn get_name(string: &String) -> String {
         let mut name = String::new();
         let mut chars = string.chars();
         while let Some(c) = chars.next_back() {

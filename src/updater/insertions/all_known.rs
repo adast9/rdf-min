@@ -1,15 +1,8 @@
-use crate::{
-    classes::{
-        clique::{CliqueChange, CliqueCollection},
-        dataset::Dataset,
-        meta::Meta,
-        triple::Triple,
-    },
-    updater::funcs::{
-        get_name, get_node_index, index_of_empty_clique, merge_cliques, node_is_in_supernode,
-        node_is_supernode, remove_from_supernode, split_snode_name, to_single_node,
-        update_clique_indices, update_index, update_triples_after_split,
-    },
+use crate::classes::{
+    clique::{CliqueChange, CliqueCollection},
+    dataset::Dataset,
+    meta::Meta,
+    triple::Triple,
 };
 
 pub fn insert_triple(

@@ -1,20 +1,13 @@
-use crate::classes::{clique::CliqueCollection, dataset::Dataset, meta::Meta};
+use crate::classes::{
+    clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta,
+};
 
-use self::{insertions::CliqueChange, triple_updater::update_changes};
+use self::triple_updater::update_changes;
 pub mod funcs;
 mod insertions;
 mod triple_updater;
 
 pub fn run(
-    dataset: &mut Dataset,
-    meta: &mut Meta,
-    sc: &mut CliqueCollection,
-    tc: &mut CliqueCollection,
-) {
-    handle_insersertions(dataset, meta, sc, tc);
-}
-
-fn handle_insersertions(
     dataset: &mut Dataset,
     meta: &mut Meta,
     sc: &mut CliqueCollection,
@@ -27,7 +20,7 @@ fn handle_insersertions(
             continue;
         }
 
-        let snodes = get_super_nodes(stuff, changes, sc, tc);
+        let snodes = get_super_nodes(changes, sc, tc);
         update_changes(stuff, &snodes, sc, tc);
     }
 }
@@ -38,11 +31,11 @@ pub fn get_super_nodes(
     tc: &mut CliqueCollection,
 ) -> Vec<Vec<u32>> {
     if changes.len() == 1 {
-        return handle_clique_change(stuff, changes[0].clone(), sc, tc);
+        return changes[0].get_super_nodes(sc, tc);
     }
 
-    let mut cc1 = handle_clique_change(stuff, changes[0].clone(), sc, tc);
-    let cc2 = handle_clique_change(stuff, changes[1].clone(), sc, tc);
+    let mut cc1 = changes[0].get_super_nodes(sc, tc);
+    let cc2 = changes[1].get_super_nodes(sc, tc);
 
     let mut done: Vec<Vec<u32>> = Vec::new();
     let mut marks: Vec<[usize; 2]> = Vec::new();
@@ -92,36 +85,6 @@ pub fn get_super_nodes(
     return done;
 }
 
-fn handle_clique_change(
-    change: CliqueChange,
-    sc: &mut CliqueCollection,
-    tc: &mut CliqueCollection,
-) -> Vec<Vec<u32>> {
-    let mut super_nodes: Vec<Vec<u32>> = Vec::new();
-
-    let c1 = if change.is_source {
-        sc[change.clique_index].clone()
-    } else {
-        tc[change.clique_index].clone()
-    };
-
-    for node in change.new_nodes {
-        let c2 = if change.is_source {
-            let index = stuff.index_map.get(&node).unwrap()[1];
-            tc[index].clone()
-        } else {
-            let index = stuff.index_map.get(&node).unwrap()[0];
-            sc[index].clone()
-        };
-
-        let intersect = c1.node_intersection(&c2);
-        if intersect.len() >= 2 {
-            super_nodes.push(intersect);
-        }
-    }
-    return super_nodes;
-}
-
 fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
     for n in v1 {
         if v2.contains(&n) {
@@ -129,16 +92,6 @@ fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
         }
     }
     return false;
-}
-
-fn do_intersection(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
-    let mut intersection: Vec<u32> = Vec::new();
-    for n in v1 {
-        if v2.contains(&n) {
-            intersection.push(*n);
-        }
-    }
-    return intersection;
 }
 
 fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
@@ -149,6 +102,5 @@ fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
             result.push(*e);
         }
     }
-
     return result;
 }

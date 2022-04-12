@@ -1,7 +1,5 @@
 use std::collections::{HashMap, VecDeque};
 
-use super::meta::Meta;
-
 #[derive(Clone)]
 pub struct Clique {
     pub preds: Vec<u32>,
@@ -222,6 +220,14 @@ impl CliqueCollection {
         return self.cliques[index].nodes.clone();
     }
 
+    pub fn get_clique_by_node(&self, id: &u32) -> Clique {
+        return self.cliques[self.get_index(id)].clone();
+    }
+
+    pub fn get_clique_by_index(&self, index: usize) -> Clique {
+        return self.cliques[index].clone();
+    }
+
     pub fn clique_len(&self, index: usize) -> usize {
         return self.cliques[index].nodes.len();
     }
@@ -253,6 +259,13 @@ impl CliqueCollection {
     pub fn to_single_node(&mut self, snode: &u32, single: &u32) {
         self.add_node_to_clique(single, snode);
         self.remove_node(snode);
+    }
+
+    pub fn new_snode(&mut self, old: &Vec<u32>, new: &u32) {
+        self.add_node_to_clique(new, &old[0]);
+        for n in old {
+            self.remove_node(n);
+        }
     }
 }
 
@@ -287,5 +300,33 @@ impl CliqueChange {
         );
 
         return change;
+    }
+
+    pub fn get_super_nodes(
+        self,
+        sc: &mut CliqueCollection,
+        tc: &mut CliqueCollection,
+    ) -> Vec<Vec<u32>> {
+        let mut super_nodes: Vec<Vec<u32>> = Vec::new();
+
+        let c1 = if self.is_source {
+            sc.get_clique_by_index(self.clique_index)
+        } else {
+            tc.get_clique_by_index(self.clique_index)
+        };
+
+        for node in self.new_nodes {
+            let c2 = if self.is_source {
+                tc.get_clique_by_node(&node)
+            } else {
+                sc.get_clique_by_node(&node)
+            };
+
+            let intersect = c1.node_intersection(&c2);
+            if intersect.len() >= 2 {
+                super_nodes.push(intersect);
+            }
+        }
+        return super_nodes;
     }
 }

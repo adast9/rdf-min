@@ -156,6 +156,28 @@ impl Meta {
         self.nodes.get_mut(&node).unwrap().remove_parent();
         self.supernodes.remove(snode);
     }
+
+    /// Combines all nodes in `snode` into a single supernode in `stuff.supernodes`.
+    /// Also updates the `parent` field of all nodes in `snode`.
+    pub fn new_snode(&mut self, old: &Vec<u32>, new: &u32) {
+        let mut new_snode: Vec<u32> = Vec::new();
+
+        for n in old {
+            if self.contains_supernode(&n) {
+                let sn = self.supernodes.get(n).unwrap();
+                new_snode.extend(sn);
+
+                for s in sn {
+                    self.nodes.get_mut(s).unwrap().set_parent(new);
+                }
+                self.supernodes.remove(n);
+            } else {
+                self.nodes.get_mut(n).unwrap().set_parent(new);
+                new_snode.push(*n);
+            }
+        }
+        self.supernodes.insert(*new, new_snode);
+    }
 }
 
 pub struct NodeInfo {
@@ -176,5 +198,9 @@ impl NodeInfo {
 
     pub fn remove_parent(&mut self) {
         self.parent = None;
+    }
+
+    pub fn set_parent(&mut self, parent: &u32) {
+        self.parent = Some(*parent);
     }
 }
