@@ -104,7 +104,7 @@ impl TripleCollection {
 
     pub fn add_data_triple(&mut self, triple: &Triple) {
         if !self.data_triples.contains(triple) {
-            self.data_triples.push(*triple);
+            self.data_triples.push(triple.clone());
         }
     }
 }

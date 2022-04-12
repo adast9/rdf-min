@@ -1,5 +1,4 @@
 use io::{BufReader, Error};
-use std::collections::HashMap;
 use std::fs::remove_file;
 use std::fs::File;
 use std::fs::OpenOptions;
@@ -10,9 +9,7 @@ use std::path::PathBuf;
 
 use crate::classes::dict::Dict;
 use crate::classes::meta::Meta;
-use crate::classes::node_info::NodeInfo;
 use crate::classes::triple::Triple;
-use crate::parser::meta::MetaFile;
 
 fn write_lines(path: &PathBuf, vec: &Vec<String>) -> Result<(), Error> {
     let mut file = OpenOptions::new()

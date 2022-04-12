@@ -46,45 +46,53 @@ impl Dataset {
     }
 
     pub fn add_triple(&mut self, triple: Triple, meta: &Meta) {
+        let mut new_triple = triple.clone();
+
         if let Some(p) = meta.get_parent(&triple.sub) {
-            triple.sub = p;
+            new_triple.sub = p;
         }
         if let Some(p) = meta.get_parent(&triple.obj) {
-            triple.obj = p;
+            new_triple.obj = p;
         }
-        self.triples.add_data_triple(&triple);
+        self.triples.add_data_triple(&new_triple);
     }
 
     pub fn split(&mut self, node: &u32, p: &u32, meta: &Meta) {
-        for t in self.triples.data_triples {
-            self.split_triple(&mut t, node, p, meta);
+        for i in 0..self.triples.data_triples.len() {
+            self.split_triple(i, node, p, meta, true);
         }
-        for t in self.triples.type_triples {
-            self.split_triple(&mut t, node, p, meta);
+        for i in 0..self.triples.type_triples.len() {
+            self.split_triple(i, node, p, meta, false);
         }
         self.dict.remove_from_name(p, node);
     }
 
-    pub fn split_triple(&self, triple: &mut Triple, node: &u32, p: &u32, meta: &Meta) {
-        if triple.sub == *p {
-            if !meta.has_outgoing_pred(node, &triple.pred) {
+    pub fn split_triple(&mut self, i: usize, node: &u32, p: &u32, meta: &Meta, is_data: bool) {
+        let triples = if is_data {
+            &mut self.triples.data_triples
+        } else {
+            &mut self.triples.type_triples
+        };
+
+        if triples[i].sub == *p {
+            if !meta.has_outgoing_pred(node, &triples[i].pred) {
                 return;
             }
-            if !meta.has_outgoing_pred(p, &triple.pred) {
-                triple.sub = *node;
+            if !meta.has_outgoing_pred(p, &triples[i].pred) {
+                triples[i].sub = *node;
             } else {
-                let new = triple.clone();
+                let mut new = triples[i].clone();
                 new.sub = *node;
                 self.triples.add_data_triple(&new);
             }
-        } else if triple.obj == *p {
-            if !meta.has_incoming_pred(node, &triple.pred) {
+        } else if triples[i].obj == *p {
+            if !meta.has_incoming_pred(node, &triples[i].pred) {
                 return;
             }
-            if !meta.has_incoming_pred(p, &triple.pred) {
-                triple.obj = *node;
+            if !meta.has_incoming_pred(p, &triples[i].pred) {
+                triples[i].obj = *node;
             } else {
-                let new = triple.clone();
+                let mut new = triples[i].clone();
                 new.obj = *node;
                 self.triples.add_data_triple(&new);
             }
@@ -102,7 +110,7 @@ impl Dataset {
     }
 
     /// Removes all nodes in `snode` and inserts `new_node`.
-    pub fn new_snode(self, snode: &Vec<u32>) -> u32 {
+    pub fn new_snode(&mut self, snode: &Vec<u32>) -> u32 {
         let mut snode_string = self.dict.key_by_value(&snode[0]).unwrap();
         snode_string = remove_angle_bracket_at_end(&snode_string).to_string();
 
@@ -120,12 +128,12 @@ impl Dataset {
 
     /// Replaces all occurences of a node in `snode` with `new_node` in `triples`.
     fn rename_triples(&mut self, old: &Vec<u32>, new: &u32) {
-        for t in self.triples.data_triples {
+        for t in &mut self.triples.data_triples {
             for n in old {
                 t.rename_node(&n, new);
             }
         }
-        for t in self.triples.type_triples {
+        for t in &mut self.triples.type_triples {
             for n in old {
                 t.rename_node(&n, new);
             }

@@ -32,16 +32,31 @@ pub fn insert(
 ) -> Option<CliqueChange> {
     let node = if is_source { &triple.sub } else { &triple.obj };
 
-    // CASE 1: If node and pred are in the same clique, return None
-    if cc.in_same_clique(&node, &triple.pred) {
-        return None;
-    }
+    if meta.has_parent(node) {
+        // CASE 1: If node and pred are in the same clique, return None
+        let p = meta.get_parent(node).unwrap();
+        if cc.in_same_clique(&p, &triple.pred) {
+            return None;
+        }
 
-    // CASE 2: If node is not in the empty set clique, merge cliques
-    if !cc.in_empty_clique(&node) {
-        let change = CliqueChange::new_merge(cc, &node, &triple.pred, is_source);
-        cc.merge_cliques(&node, &triple.pred);
-        return Some(change);
+        // CASE 2: If node is not in the empty set clique, merge cliques
+        if !cc.in_empty_clique(&p) {
+            let change = CliqueChange::new_merge(cc, &node, &triple.pred, is_source);
+            cc.merge_cliques(&node, &triple.pred);
+            return Some(change);
+        }
+    } else {
+        // CASE 1: If node and pred are in the same clique, return None
+        if cc.in_same_clique(&node, &triple.pred) {
+            return None;
+        }
+
+        // CASE 2: If node is not in the empty set clique, merge cliques
+        if !cc.in_empty_clique(&node) {
+            let change = CliqueChange::new_merge(cc, &node, &triple.pred, is_source);
+            cc.merge_cliques(&node, &triple.pred);
+            return Some(change);
+        }
     }
 
     // CASE 3: If node is not in a supernode, but in the empty set clique, move node to pred clique

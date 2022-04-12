@@ -1,5 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
+use super::meta::Meta;
+
 #[derive(Clone)]
 pub struct Clique {
     pub preds: Vec<u32>,

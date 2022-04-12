@@ -101,7 +101,7 @@ impl Meta {
 
     pub fn has_outgoing_pred(&self, node: &u32, pred: &u32) -> bool {
         if !self.contains_supernode(node) {
-            for v in self.nodes.get(node).unwrap().outgoing {
+            for v in &self.nodes.get(node).unwrap().outgoing {
                 if v[0] == *pred {
                     return true;
                 }
@@ -119,7 +119,7 @@ impl Meta {
 
     pub fn has_incoming_pred(&self, node: &u32, pred: &u32) -> bool {
         if !self.contains_supernode(node) {
-            for v in self.nodes.get(node).unwrap().incoming {
+            for v in &self.nodes.get(node).unwrap().incoming {
                 if v[0] == *pred {
                     return true;
                 }

@@ -3,7 +3,6 @@ use crate::classes::{
 };
 
 use self::triple_updater::update_changes;
-pub mod funcs;
 mod insertions;
 mod triple_updater;
 
@@ -13,7 +12,7 @@ pub fn run(
     sc: &mut CliqueCollection,
     tc: &mut CliqueCollection,
 ) {
-    for ins in dataset.insertions.data_triples {
+    for ins in dataset.insertions.data_triples.clone() {
         let changes = insertions::get_changes(&ins, dataset, meta, sc, tc);
 
         if changes.is_empty() {
@@ -21,7 +20,7 @@ pub fn run(
         }
 
         let snodes = get_super_nodes(changes, sc, tc);
-        update_changes(stuff, &snodes, sc, tc);
+        update_changes(dataset, meta, &snodes, sc, tc);
     }
 }
 
@@ -31,11 +30,11 @@ pub fn get_super_nodes(
     tc: &mut CliqueCollection,
 ) -> Vec<Vec<u32>> {
     if changes.len() == 1 {
-        return changes[0].get_super_nodes(sc, tc);
+        return changes[0].clone().get_super_nodes(sc, tc);
     }
 
-    let mut cc1 = changes[0].get_super_nodes(sc, tc);
-    let cc2 = changes[1].get_super_nodes(sc, tc);
+    let mut cc1 = changes[0].clone().get_super_nodes(sc, tc);
+    let cc2 = changes[1].clone().get_super_nodes(sc, tc);
 
     let mut done: Vec<Vec<u32>> = Vec::new();
     let mut marks: Vec<[usize; 2]> = Vec::new();
