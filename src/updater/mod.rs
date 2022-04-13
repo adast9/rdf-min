@@ -1,6 +1,6 @@
 use crate::parser::{clique::Clique, triple::Triple, MetaData};
 
-use self::{insertions::CliqueChange, triple_updater::update_changes};
+use self::{insertions::CliqueChange, triple_updater::update_changes, deletion::delete_triple};
 pub mod funcs;
 mod insertions;
 mod triple_updater;
@@ -15,6 +15,7 @@ pub fn run(
     tc: &mut Vec<Clique>,
 ) {
     handle_insersertions(stuff, insertions, sc, tc);
+    delete_triple(&_deletions, sc, tc, stuff);
 }
 
 fn handle_insersertions(
