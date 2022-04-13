@@ -10,7 +10,7 @@ pub fn update_changes(
     tc: &mut CliqueCollection,
 ) {
     for snode in snodes {
-        let new_node = dataset.new_snode(snode);
+        let new_node = dataset.new_snode(snode, meta);
         meta.new_snode(snode, &new_node);
         sc.new_snode(snode, &new_node);
         tc.new_snode(snode, &new_node);
