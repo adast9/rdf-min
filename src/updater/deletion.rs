@@ -124,10 +124,10 @@ fn handle_nodes(
     let triple_node = if is_sub { &triple.sub } else { &triple.obj};
     // Remove edges from sub or obj
     remove_edge(&mut metadata.nodes, triple, is_sub);
-    // Remove node from clique
-    remove_preds_in_clique(metadata, triple, clique, is_sub);
     // Remove if edges of sub or obj are empty
     handle_empty_edge(metadata, &triple_node, clique, is_sub);
+    // Remove node from clique
+    remove_preds_in_clique(metadata, triple, clique, is_sub);
     // Group intersected nodes into a clique and remove the original clique
     check_for_new_cliques(metadata, &triple_node, clique, is_sub);
 }
@@ -138,28 +138,19 @@ fn handle_empty_edge(
     metadata: &mut MetaData,
     node: &u32,
     clique: &mut Vec<Clique>,
-    is_outgoing: bool
+    is_sub: bool
 ) {
     let nodeinfo = metadata.nodes.get(node).unwrap();
-    if is_edge_empty(nodeinfo, is_outgoing == true) {
-        let sc_index = metadata.index_map.get(node).unwrap()[0];
-        clique.remove(sc_index);
-        clique[0].add_node(&(sc_index as u32));
-    } else if is_edge_empty(nodeinfo, is_outgoing == false) {
-        let tc_index = metadata.index_map.get(node).unwrap()[1].clone();
-        clique.remove(tc_index);
-        clique[0].add_node(&(tc_index as u32));
-    }
-}
+    let clique_type = if is_sub { 0 } else { 1 };
 
-fn check_has_parent(
-    node: &u32, 
-    metadata: &MetaData
-) -> bool {
-    if let Some(_p) = metadata.nodes.get(node).unwrap().parent {
-        return true;
+    // Operate on both source or target clique
+    if is_edge_empty(nodeinfo, is_sub) {
+        let c_index = metadata.index_map.get(node).unwrap()[clique_type];
+        //remove the node from the clique
+        clique.remove(c_index);
+        //add the node to the empty clique
+        clique[0].add_node(&(c_index as u32));
     }
-    return false;
 }
 
 fn check_for_new_cliques(
@@ -168,11 +159,17 @@ fn check_for_new_cliques(
     clique: &mut Vec<Clique>,
     is_sub: bool
 ) -> Vec<Vec<u32>> {
-    let node_index = get_node_index(metadata, &node, 0);
+    let clique_type = if is_sub { 0 } else { 1 };
+
+    let node_index = get_node_index(metadata, &node, clique_type);
+
     let mut nodes1: Vec<Vec<u32>> = Vec::new();
-    let mut nodes2 = clique[node_index].nodes.clone();
-    let mut new_clique_nodes: Vec<Vec<u32>> = Vec::new();
     nodes1.push(clique[node_index].nodes.clone());
+
+    let mut nodes2 = clique[node_index].nodes.clone();
+
+    let mut new_clique_nodes: Vec<Vec<u32>> = Vec::new();
+
     let mut resulting_cliques: Vec<Vec<u32>> = Vec::new();
 
     for n1 in &mut nodes1{
@@ -181,7 +178,7 @@ fn check_for_new_cliques(
                 if n == n2 {
                     continue;
                 }
-                if check_has_parent(&n, metadata) {
+                if has_parent(&n, metadata) {
                     let snode = metadata.supernodes.get(&n).unwrap().clone();
     
                     for sn in snode {
@@ -207,11 +204,11 @@ fn check_for_new_cliques(
                             }
                         }
                     }
-                } else if check_has_parent(&n2, metadata) {
+                } else if has_parent(&n2, metadata) {
                     let snode = metadata.supernodes.get(&n2).unwrap().clone();
-    
+                    
+                    let node_edge_preds1 = get_edge_preds(metadata, &n, is_sub);
                     for sn in snode {
-                        let node_edge_preds1 = get_edge_preds(metadata, &n, is_sub);
                         let node_edge_preds2 = get_edge_preds(metadata, &sn, is_sub);
 
                         if intersects(&node_edge_preds1,&node_edge_preds2) {
@@ -255,11 +252,11 @@ fn check_for_new_cliques(
                         }
                     }
                 }
+                sort(&mut new_clique_nodes);
                 resulting_cliques.append(&mut new_clique_nodes);
             }
         }
     }
-    sort(&mut resulting_cliques);
     remove_duplicates(&mut resulting_cliques);
     union_cliques(&mut resulting_cliques);
     clear_clique(clique, node_index);
@@ -283,9 +280,18 @@ fn create_cliques(
     is_sub: bool
 ) {
     for c in resulting_cliques {
+        let mut node_edge_preds: Vec<u32> = Vec::new();
+        for i in c {
+            // get all edge preds
+            node_edge_preds = get_edge_preds(metadata, &i, is_sub);
+        }
+        
+        node_edge_preds.sort();
+        node_edge_preds.dedup();
+
         let new_clique = Clique {
             nodes: c.clone(),
-            preds: get_edge_preds(metadata, &c[0], is_sub),
+            preds: node_edge_preds,
         };
         clique.push(new_clique);
     }
@@ -408,6 +414,16 @@ fn get_all_edges(
         edges.append(edge);
     }
     return edges;
+}
+
+fn has_parent(
+    node: &u32, 
+    metadata: &MetaData
+) -> bool {
+    if let Some(_p) = metadata.nodes.get(node).unwrap().parent {
+        return true;
+    }
+    return false;
 }
 
 /// Checks if edge is empty
