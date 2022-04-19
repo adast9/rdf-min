@@ -59,7 +59,7 @@ impl Dataset {
         self.triples.add_data_triple(&new_triple);
     }
 
-    pub fn split(&mut self, node: &u32, p: &u32, meta: &Meta) {
+    pub fn split(&mut self, node: &u32, p: &u32, meta: &Meta, to_single: bool) {
         let mut data_triples_to_remove: Vec<usize> = Vec::new();
         let mut type_triples_to_remove: Vec<usize> = Vec::new();
 
@@ -77,7 +77,9 @@ impl Dataset {
             self.triples.type_triples.remove(*i);
         }
 
-        self.dict.remove_from_name(p, node);
+        if !to_single {
+            self.dict.remove_from_name(p, node);
+        }
     }
 
     pub fn split_triple(
@@ -96,10 +98,10 @@ impl Dataset {
         };
 
         if triples[i].sub == *p {
-            if !meta.has_outgoing_pred(node, &triples[i].pred) {
+            if !meta.has_outgoing_triple(node, &triples[i].pred, &triples[i].obj) {
                 return;
             }
-            if !meta.has_outgoing_pred(p, &triples[i].pred) {
+            if !meta.has_outgoing_triple(p, &triples[i].pred, &triples[i].obj) {
                 if !triples.contains(&Triple::new(
                     *node,
                     triples[i].pred,
@@ -116,10 +118,10 @@ impl Dataset {
                 self.triples.add_data_triple(&new);
             }
         } else if triples[i].obj == *p {
-            if !meta.has_incoming_pred(node, &triples[i].pred) {
+            if !meta.has_incoming_triple(&triples[i].sub, &triples[i].pred, node) {
                 return;
             }
-            if !meta.has_incoming_pred(p, &triples[i].pred) {
+            if !meta.has_incoming_triple(&triples[i].sub, &triples[i].pred, p) {
                 if !triples.contains(&Triple::new(
                     triples[i].sub,
                     triples[i].pred,
@@ -140,14 +142,16 @@ impl Dataset {
         }
     }
 
-    pub fn to_single_node(&mut self, node: &u32, p: &u32) {
+    pub fn to_single_node(&mut self, p: &u32, node: &u32) {
         for t in self.triples.data_triples.iter_mut() {
             t.rename_node(&p, &node);
         }
         for t in self.triples.type_triples.iter_mut() {
             t.rename_node(&p, &node);
         }
-        self.dict.remove_by_value(p);
+        if self.dict.contains_value(p) {
+            self.dict.remove_by_value(p);
+        }
     }
 
     /// Removes all nodes in `snode` and inserts `new_node`.
@@ -184,15 +188,34 @@ impl Dataset {
         let mut data_triples_to_remove: Vec<usize> = Vec::new();
         let mut type_triples_to_remove: Vec<usize> = Vec::new();
 
-        for t in &mut self.triples.data_triples {
+        for i in 0..self.triples.data_triples.len() {
             for n in old {
-                t.rename_node(&n, new);
+                Dataset::rename_node(
+                    &mut self.triples.data_triples,
+                    i,
+                    n,
+                    new,
+                    &mut data_triples_to_remove,
+                );
             }
         }
-        for t in &mut self.triples.type_triples {
+        for i in 0..self.triples.type_triples.len() {
             for n in old {
-                t.rename_node(&n, new);
+                Dataset::rename_node(
+                    &mut self.triples.type_triples,
+                    i,
+                    n,
+                    new,
+                    &mut type_triples_to_remove,
+                );
             }
+        }
+
+        for i in data_triples_to_remove.iter().rev() {
+            self.triples.data_triples.remove(*i);
+        }
+        for i in type_triples_to_remove.iter().rev() {
+            self.triples.type_triples.remove(*i);
         }
     }
 
@@ -206,23 +229,33 @@ impl Dataset {
 
     fn rename_node(
         triples: &mut Vec<Triple>,
-        t: &mut Triple,
+        i: usize,
         old: &u32,
         new: &u32,
-        to_remove: Vec<u32>,
+        to_remove: &mut Vec<usize>,
     ) {
-        if t.sub == *old {
-            if !triples.contains(&Triple::new(*new, t.pred, t.obj, t.is_type)) {
-                t.sub = *new;
+        if triples[i].sub == *old {
+            if !triples.contains(&Triple::new(
+                *new,
+                triples[i].pred,
+                triples[i].obj,
+                triples[i].is_type,
+            )) {
+                triples[i].sub = *new;
             } else {
-                to_remove.push(t.sub);
+                to_remove.push(i);
             }
         }
-        if t.obj == *old {
-            if !triples.contains(&Triple::new(t.sub, t.pred, *new, t.is_type)) {
-                t.obj = *new;
+        if triples[i].obj == *old {
+            if !triples.contains(&Triple::new(
+                triples[i].sub,
+                triples[i].pred,
+                *new,
+                triples[i].is_type,
+            )) {
+                triples[i].obj = *new;
             } else {
-                to_remove.push(t.obj);
+                to_remove.push(i);
             }
         }
     }

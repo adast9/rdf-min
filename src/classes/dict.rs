@@ -80,7 +80,9 @@ impl Dict {
     pub fn update_key(&mut self, new: &String, old: &String) {
         let val = self.get(old).unwrap().clone();
         self.dict.remove(old);
-        self.dict.insert(new.to_string(), val);
+        if !self.dict.contains_key(new) {
+            self.dict.insert(new.to_string(), val);
+        }
     }
 
     pub fn to_strings(&self) -> Vec<String> {
@@ -135,5 +137,14 @@ impl Dict {
     pub fn remove_by_value(&mut self, value: &u32) {
         let key = self.key_by_value(value).unwrap();
         self.remove(&key);
+    }
+
+    pub fn contains_value(&self, value: &u32) -> bool {
+        for v in self.dict.values() {
+            if *v == *value {
+                return true;
+            }
+        }
+        return false;
     }
 }

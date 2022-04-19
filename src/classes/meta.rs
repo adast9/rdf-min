@@ -65,7 +65,11 @@ impl Meta {
         }
         self.nodes.insert(
             node,
-            NodeInfo::new(&None, &vec![], &vec![vec![triple.pred, other]]),
+            if !is_sub {
+                NodeInfo::new(&None, &vec![vec![triple.pred, other]], &vec![])
+            } else {
+                NodeInfo::new(&None, &vec![], &vec![vec![triple.pred, other]])
+            },
         );
     }
 
@@ -93,23 +97,33 @@ impl Meta {
         return self.get_parent(node).is_some();
     }
 
-    pub fn remove_from_supernode(&mut self, node: &u32) {
+    pub fn remove_from_supernode(&mut self, node: &u32) -> bool {
         let p = self.get_parent(node).unwrap();
         self.supernodes.get_mut(&p).unwrap().retain(|x| *x != *node);
         self.nodes.get_mut(node).unwrap().remove_parent();
+        if self.supernode_len(&p) == 1 {
+            return true;
+        }
+        return false;
     }
 
-    pub fn has_outgoing_pred(&self, node: &u32, pred: &u32) -> bool {
-        if !self.contains_supernode(node) {
-            for v in &self.nodes.get(node).unwrap().outgoing {
-                if v[0] == *pred {
-                    return true;
+    pub fn has_incoming_triple(&self, s: &u32, p: &u32, o: &u32) -> bool {
+        if !self.contains_supernode(o) {
+            for v in &self.nodes.get(o).unwrap().incoming {
+                if v[0] == *p {
+                    if let Some(parent) = self.get_parent(&v[1]) {
+                        if parent == *s {
+                            return true;
+                        }
+                    } else if v[1] == *s {
+                        return true;
+                    }
                 }
             }
             return false;
         } else {
-            for v in self.supernodes.get(node).unwrap() {
-                if self.has_outgoing_pred(v, pred) {
+            for v in self.supernodes.get(o).unwrap() {
+                if self.has_incoming_triple(s, p, v) {
                     return true;
                 }
             }
@@ -117,17 +131,23 @@ impl Meta {
         }
     }
 
-    pub fn has_incoming_pred(&self, node: &u32, pred: &u32) -> bool {
-        if !self.contains_supernode(node) {
-            for v in &self.nodes.get(node).unwrap().incoming {
-                if v[0] == *pred {
-                    return true;
+    pub fn has_outgoing_triple(&self, s: &u32, p: &u32, o: &u32) -> bool {
+        if !self.contains_supernode(s) {
+            for v in &self.nodes.get(s).unwrap().outgoing {
+                if v[0] == *p {
+                    if let Some(parent) = self.get_parent(&v[1]) {
+                        if parent == *o {
+                            return true;
+                        }
+                    } else if v[1] == *o {
+                        return true;
+                    }
                 }
             }
             return false;
         } else {
-            for v in self.supernodes.get(node).unwrap() {
-                if self.has_incoming_pred(v, pred) {
+            for v in self.supernodes.get(s).unwrap() {
+                if self.has_outgoing_triple(v, p, o) {
                     return true;
                 }
             }
@@ -177,6 +197,10 @@ impl Meta {
             }
         }
         self.supernodes.insert(*new, new_snode);
+    }
+
+    pub fn get_supernode(&self, n: &u32) -> Option<&Vec<u32>> {
+        return self.supernodes.get(n);
     }
 }
 

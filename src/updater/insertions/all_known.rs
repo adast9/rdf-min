@@ -41,8 +41,8 @@ pub fn insert(
 
         // CASE 2: If node is not in the empty set clique, merge cliques
         if !cc.in_empty_clique(&p) {
-            let change = CliqueChange::new_merge(cc, &node, &triple.pred, is_source);
-            cc.merge_cliques(&node, &triple.pred);
+            let change = CliqueChange::new_merge(cc, &p, &triple.pred, is_source);
+            cc.merge_cliques(&p, &triple.pred);
             return Some(change);
         }
     } else {
@@ -71,16 +71,18 @@ pub fn insert(
 
     // CASE 4: If node is a supernode AND in the empty set clique, split node from its supernode
     let prev_p = meta.get_parent(node).unwrap();
-    meta.remove_from_supernode(node);
+    let to_single = meta.remove_from_supernode(node);
+
     cc.split_and_move(node, &triple.pred);
     other_cc.split(node, &prev_p);
-    dataset.split(node, &prev_p, meta);
+    dataset.split(node, &prev_p, meta, to_single);
 
-    if meta.supernode_len(&prev_p) == 1 {
+    if to_single {
+        let n = meta.get_supernode(&prev_p).unwrap()[0];
         meta.to_single_node(&prev_p);
-        cc.to_single_node(&prev_p, &node);
-        other_cc.to_single_node(&prev_p, &node);
-        dataset.to_single_node(&prev_p, &node);
+        cc.to_single_node(&prev_p, &n);
+        other_cc.to_single_node(&prev_p, &n);
+        dataset.to_single_node(&prev_p, &n);
     }
 
     return Some(CliqueChange::new(
