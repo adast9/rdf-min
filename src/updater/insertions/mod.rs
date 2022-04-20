@@ -16,6 +16,17 @@ pub fn get_changes(
     sc: &mut CliqueCollection,
     tc: &mut CliqueCollection,
 ) -> Vec<CliqueChange> {
+    prepare_triple(triple, dataset, meta, sc, tc);
+    return all_known::insert_triple(triple, dataset, meta, sc, tc);
+}
+
+fn prepare_triple(
+    triple: &Triple,
+    dataset: &mut Dataset,
+    meta: &mut Meta,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
+) {
     let (sub_known, pred_known, obj_known) = are_they_known(triple, meta, sc);
 
     if !sub_known {
@@ -40,8 +51,6 @@ pub fn get_changes(
     }
 
     dataset.add_triple(triple.clone(), &meta);
-
-    return all_known::insert_triple(triple, dataset, meta, sc, tc);
 }
 
 fn are_they_known(triple: &Triple, meta: &Meta, clique: &CliqueCollection) -> (bool, bool, bool) {

@@ -12,20 +12,78 @@ pub fn run(
     sc: &mut CliqueCollection,
     tc: &mut CliqueCollection,
 ) {
-    for ins in dataset.insertions.data_triples.clone() {
-        let changes = insertions::get_changes(&ins, dataset, meta, sc, tc);
-
+    for i in 0..dataset.insertions.data_triples.len() {
+        let changes = insertions::get_changes(
+            &dataset.insertions.data_triples[i].clone(),
+            dataset,
+            meta,
+            sc,
+            tc,
+        );
         if changes.is_empty() {
             continue;
         }
 
-        let snodes = get_super_nodes(changes, sc, tc);
+        let snodes = get_super_nodes(&changes, sc, tc);
+        let snodes2 = get_super_nodes_2(&changes, sc, tc);
+        print!("{:?} - {:?}", snodes, snodes2);
+
         update_changes(dataset, meta, &snodes, sc, tc);
     }
 }
 
+pub fn get_super_nodes_2(
+    changes: &Vec<CliqueChange>,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
+) -> Vec<Vec<u32>> {
+    if changes.len() == 1 {
+        return changes[0].clone().get_super_nodes(sc, tc);
+    }
+
+    let mut snodes = changes[0].clone().get_super_nodes(sc, tc);
+    snodes.extend(changes[1].clone().get_super_nodes(sc, tc));
+
+    let mut i = 0;
+    let mut j = snodes.len() - 1;
+
+    loop {
+        // if i == j
+        //     increase i by 1
+        //     if i == len
+        //          done
+        //     else
+        //          reset j
+        //
+        // if intersect i and j not empty set
+        //     merge j into i
+        //     delete j from snodes
+        //     reset j
+        // else
+        //     reduce j by 1
+        //
+
+        if i == j {
+            i += 1;
+            if i == snodes.len() {
+                break;
+            }
+            j = snodes.len();
+        }
+
+        if intersects(&snodes[i], &snodes[j]) {
+            snodes[i] = union(&snodes[i], &snodes[j]);
+            snodes.remove(j);
+            j = snodes.len();
+        } else {
+            j -= 1;
+        }
+    }
+    return snodes;
+}
+
 pub fn get_super_nodes(
-    changes: Vec<CliqueChange>,
+    changes: &Vec<CliqueChange>,
     sc: &mut CliqueCollection,
     tc: &mut CliqueCollection,
 ) -> Vec<Vec<u32>> {
