@@ -1,4 +1,4 @@
-use std::{env, fs, path::PathBuf, process};
+use std::{env, path::PathBuf, process};
 
 mod classes;
 mod parser;
@@ -9,14 +9,12 @@ mod writer;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-
     let config = Config::new(&args).unwrap_or_else(|err| {
         println!("Problem parsing arguments: {}", err);
         process::exit(1);
     });
 
     let (mut dataset, mut meta, mut sc, mut tc) = parser::run(&config).unwrap();
-
     updater::run(&mut dataset, &mut meta, &mut sc, &mut tc);
     writer::run(&config, &dataset, &meta);
 

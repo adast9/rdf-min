@@ -1,10 +1,7 @@
 use crate::classes::{
     clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta,
 };
-
-use self::triple_updater::update_changes;
-mod insertions;
-mod triple_updater;
+mod insertion;
 
 pub fn run(
     dataset: &mut Dataset,
@@ -13,7 +10,7 @@ pub fn run(
     tc: &mut CliqueCollection,
 ) {
     for i in 0..dataset.insertions.data_triples.len() {
-        let changes = insertions::get_changes(
+        let changes = insertion::get_changes(
             &dataset.insertions.data_triples[i].clone(),
             dataset,
             meta,
@@ -26,7 +23,7 @@ pub fn run(
         }
 
         let snodes = get_super_nodes(changes, sc, tc);
-        update_changes(dataset, meta, &snodes, sc, tc);
+        apply_changes(dataset, meta, &snodes, sc, tc);
     }
 }
 
@@ -86,4 +83,19 @@ fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
         }
     }
     return result;
+}
+
+fn apply_changes(
+    dataset: &mut Dataset,
+    meta: &mut Meta,
+    snodes: &Vec<Vec<u32>>,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
+) {
+    for snode in snodes {
+        let new_node = dataset.new_snode(snode, meta);
+        meta.new_snode(snode, &new_node);
+        sc.new_snode(snode, &new_node);
+        tc.new_snode(snode, &new_node);
+    }
 }
