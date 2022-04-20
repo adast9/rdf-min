@@ -66,9 +66,9 @@ impl Meta {
         self.nodes.insert(
             node,
             if !is_sub {
-                NodeInfo::new(&None, &vec![vec![triple.pred, other]], &vec![])
+                NodeInfo::new(&None, &vec![[triple.pred, other]], &vec![])
             } else {
-                NodeInfo::new(&None, &vec![], &vec![vec![triple.pred, other]])
+                NodeInfo::new(&None, &vec![], &vec![[triple.pred, other]])
             },
         );
     }
@@ -78,7 +78,7 @@ impl Meta {
             .get_mut(&triple.sub)
             .unwrap()
             .outgoing
-            .push(vec![triple.pred, triple.obj]);
+            .push([triple.pred, triple.obj]);
     }
 
     pub fn add_incoming(&mut self, triple: &Triple) {
@@ -86,7 +86,7 @@ impl Meta {
             .get_mut(&triple.obj)
             .unwrap()
             .incoming
-            .push(vec![triple.pred, triple.sub]);
+            .push([triple.pred, triple.sub]);
     }
 
     pub fn get_parent(&self, node: &u32) -> Option<u32> {
@@ -159,7 +159,6 @@ impl Meta {
         if !self.contains_supernode(node) {
             panic!("Trying to get length of non-supernode {:?}", node);
         }
-        let mut len = 0;
         return self.supernodes.get(node).unwrap().len();
     }
 
@@ -206,13 +205,12 @@ impl Meta {
 
 pub struct NodeInfo {
     pub parent: Option<u32>,
-    // todo: incoming and outgoing should be Vec<[u32;2]>
-    pub incoming: Vec<Vec<u32>>,
-    pub outgoing: Vec<Vec<u32>>,
+    pub incoming: Vec<[u32; 2]>,
+    pub outgoing: Vec<[u32; 2]>,
 }
 
 impl NodeInfo {
-    pub fn new(parent: &Option<u32>, incoming: &Vec<Vec<u32>>, outgoing: &Vec<Vec<u32>>) -> Self {
+    pub fn new(parent: &Option<u32>, incoming: &Vec<[u32; 2]>, outgoing: &Vec<[u32; 2]>) -> Self {
         NodeInfo {
             parent: parent.clone(),
             incoming: incoming.clone(),

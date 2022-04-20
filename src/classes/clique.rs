@@ -1,7 +1,5 @@
 use std::collections::{HashMap, VecDeque};
 
-use super::meta::Meta;
-
 #[derive(Clone)]
 pub struct Clique {
     pub preds: Vec<u32>,
@@ -15,19 +13,6 @@ impl Clique {
             preds: preds.clone(),
             nodes: nodes.clone(),
         }
-    }
-
-    /// Creates an empty `Clique`.
-    pub fn empty() -> Self {
-        Self {
-            preds: vec![],
-            nodes: vec![],
-        }
-    }
-
-    /// Adds `node` to the nodes of the `Clique`.
-    pub fn add_node(&mut self, node: &u32) {
-        self.nodes.push(*node);
     }
 
     /// Removes `node` from the nodes of the `Clique`.
@@ -105,24 +90,6 @@ impl CliqueCollection {
         self.cliques[b_index].preds = vec![];
 
         self.queue.push_back(b_index);
-    }
-
-    pub fn merge_cliques_with_change(&mut self, a: &u32, b: &u32, is_source: bool) -> CliqueChange {
-        let a_index = *self.index_map.get(a).unwrap();
-        let b_index = *self.index_map.get(b).unwrap();
-
-        let change = CliqueChange::new(
-            a_index,
-            if self.cliques[a_index].nodes.len() < self.cliques[b_index].nodes.len() {
-                self.cliques[a_index].nodes.clone()
-            } else {
-                self.cliques[b_index].nodes.clone()
-            },
-            is_source,
-        );
-
-        self.merge_cliques(a, b);
-        return change;
     }
 
     /// Adds `pred` to the clique containing `node`.

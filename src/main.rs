@@ -2,10 +2,10 @@ use std::{env, path::PathBuf, process};
 
 mod classes;
 mod parser;
-// mod tests;
 mod updater;
 mod util;
 mod writer;
+// mod tests;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

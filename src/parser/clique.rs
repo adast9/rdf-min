@@ -4,9 +4,9 @@ pub fn create_cliques(triples: &Vec<Triple>) -> (CliqueCollection, CliqueCollect
     let mut sc = CliqueCollection::new();
     let mut tc = CliqueCollection::new();
 
-    for triple in triples {
-        sc.new_triple(&triple.sub, &triple.pred);
-        tc.new_triple(&triple.obj, &triple.pred);
+    for t in triples {
+        sc.new_triple(&t.sub, &t.pred);
+        tc.new_triple(&t.obj, &t.pred);
     }
 
     for n in unique_nodes(triples) {
@@ -24,12 +24,12 @@ fn unique_nodes(triples: &Vec<Triple>) -> Vec<u32> {
     // todo: move into Triples struct
     let mut ids: Vec<u32> = Vec::new();
 
-    for triple in triples {
-        if !ids.contains(&triple.sub) {
-            ids.push(triple.sub);
+    for t in triples {
+        if !ids.contains(&t.sub) {
+            ids.push(t.sub);
         }
-        if !ids.contains(&triple.obj) && !triple.is_type {
-            ids.push(triple.obj);
+        if !ids.contains(&t.obj) && !t.is_type {
+            ids.push(t.obj);
         }
     }
     return ids;

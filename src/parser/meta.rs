@@ -28,8 +28,8 @@ pub struct MetaFile {
 pub struct Node {
     pub i: u32,
     pub p: Option<u32>,
-    pub n: Vec<Vec<u32>>,
-    pub o: Vec<Vec<u32>>,
+    pub n: Vec<[u32; 2]>,
+    pub o: Vec<[u32; 2]>,
 }
 
 #[derive(Serialize, Deserialize)]

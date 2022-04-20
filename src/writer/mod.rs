@@ -19,23 +19,14 @@ pub fn run(config: &Config, dataset: &Dataset, meta: &Meta) {
     }
 
     write_dict(&config.meta_folder_path.join("dict"), &dataset).unwrap();
-
     write_meta(&config.meta_folder_path.join("meta.json"), &meta).unwrap();
 }
 
 fn write_triples(path: &PathBuf, dataset: &Dataset) -> Result<(), Error> {
     let mut triple_strings: Vec<String> = Vec::new();
 
-    for triple in &dataset.triples.data_triples {
-        let sub_string = dataset.key_by_value(&triple.sub).unwrap();
-        let pred_string = dataset.key_by_value(&triple.pred).unwrap();
-        let obj_string = dataset.key_by_value(&triple.obj).unwrap();
-
-        let triple_string = format!("{} {} {} .", sub_string, pred_string, obj_string);
-
-        if !triple_strings.contains(&triple_string) {
-            triple_strings.push(triple_string);
-        }
+    for t in &dataset.triples.data_triples {
+        triple_strings.push(t.to_string(dataset));
     }
     Ok(io::write_lines(path, &triple_strings)?)
 }

@@ -49,6 +49,14 @@ impl Dict {
         }
     }
 
+    pub fn add_if_new(&mut self, key: &String) -> u32 {
+        return if self.contains(key) {
+            *self.get(key).unwrap()
+        } else {
+            self.add(key)
+        };
+    }
+
     /// Removes the entry `key` from the `Dict`.
     ///
     /// # Panics
@@ -116,10 +124,10 @@ impl Dict {
         let index = snode_string.find(&node_string).unwrap();
 
         let old_key = snode_string.clone();
-        if (index + node_string.len() + 1 == snode_string.len()) {
-            snode_string.replace_range((index - 1..index + node_string.len()), "");
+        if index + node_string.len() + 1 == snode_string.len() {
+            snode_string.replace_range(index - 1..index + node_string.len(), "");
         } else {
-            snode_string.replace_range((index..index + node_string.len() + 1), "");
+            snode_string.replace_range(index..index + node_string.len() + 1, "");
         }
 
         self.update_key(&snode_string, &old_key);

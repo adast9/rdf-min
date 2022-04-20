@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use crate::classes::dict::Dict;
 use crate::classes::triple::TripleCollection;
 
