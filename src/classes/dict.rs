@@ -10,7 +10,13 @@ impl Dict {
     pub fn new(dict_lines: &Vec<String>) -> Self {
         let mut dict = Dict::empty();
         for l in dict_lines {
-            dict.add(&l);
+            let id = dict.next_id();
+
+            if l.is_empty() {
+                dict.queue.push_back(id);
+            } else {
+                dict.dict.insert(l.to_string(), id);
+            }
         }
         return dict;
     }
