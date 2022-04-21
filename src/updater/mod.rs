@@ -1,131 +1,66 @@
-use crate::parser::{clique::Clique, triple::Triple, MetaData};
-
-use self::{insertions::CliqueChange, triple_updater::update_changes, deletion::delete_triple};
-pub mod funcs;
-mod insertions;
-mod triple_updater;
-mod deletion;
-
+use crate::models::{clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta};
+mod insertion;
 
 pub fn run(
-    stuff: &mut MetaData,
-    insertions: Vec<Triple>,
-    _deletions: Vec<Triple>,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
+    dataset: &mut Dataset,
+    meta: &mut Meta,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
 ) {
-    handle_insersertions(stuff, insertions, sc, tc);
-    delete_triple(&_deletions, sc, tc, stuff);
-}
-
-fn handle_insersertions(
-    stuff: &mut MetaData,
-    insertions: Vec<Triple>,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
-) {
-    for ins in insertions {
-        let changes = insertions::get_changes(stuff, &ins, sc, tc);
+    for i in 0..dataset.insertions.data_triples.len() {
+        let changes = insertion::get_changes(
+            &dataset.insertions.data_triples[i].clone(),
+            dataset,
+            meta,
+            sc,
+            tc,
+        );
 
         if changes.is_empty() {
             continue;
         }
 
-        let snodes = get_super_nodes(stuff, changes, sc, tc);
-        update_changes(stuff, &snodes, sc, tc);
+        let snodes = get_super_nodes(changes, sc, tc);
+        apply_changes(dataset, meta, &snodes, sc, tc);
     }
 }
 
 pub fn get_super_nodes(
-    stuff: &mut MetaData,
     changes: Vec<CliqueChange>,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
 ) -> Vec<Vec<u32>> {
     if changes.len() == 1 {
-        return handle_clique_change(stuff, changes[0].clone(), sc, tc);
+        return changes[0].clone().get_super_nodes(sc, tc);
     }
 
-    let mut cc1 = handle_clique_change(stuff, changes[0].clone(), sc, tc);
-    let cc2 = handle_clique_change(stuff, changes[1].clone(), sc, tc);
-
-    let mut done: Vec<Vec<u32>> = Vec::new();
-    let mut marks: Vec<[usize; 2]> = Vec::new();
-
-    // todo: Fix dirty clone - make in-place
-    for (i, sn1) in cc1.clone().iter().enumerate() {
-        let mut used = false;
-        for (j, sn2) in cc2.iter().enumerate() {
-            if intersects(sn1, sn2) {
-                marks.push([i, j]);
-                cc1[i] = union(&sn1, sn2);
-                used = true;
-            }
-        }
-        if !used {
-            done.push(sn1.clone());
-        }
+    let mut snodes = changes[0].clone().get_super_nodes(sc, tc);
+    snodes.extend(changes[1].clone().get_super_nodes(sc, tc));
+    if !snodes.len() > 1 {
+        return snodes;
     }
 
-    // merge marked supernodes in cc1
-    for (i, m) in marks.iter().enumerate() {
-        for j in 0..i {
-            if m[1] == marks[j][1] {
-                let target_i = marks[j][0];
-                cc1[target_i] = union(&cc1[target_i], &cc1[m[0]]);
+    let mut i = 0;
+    let mut j = snodes.len() - 1;
+
+    loop {
+        if i == j {
+            i += 1;
+            if i == snodes.len() {
                 break;
             }
+            j = snodes.len();
         }
-    }
 
-    // Get done supernodes from cc1
-    let mut used: Vec<usize> = Vec::new();
-    for m in marks {
-        if !used.contains(&m[1]) {
-            used.push(m[1]);
-            done.push(cc1[m[0]].clone());
-        }
-    }
-
-    // Get unmarked nodes from cc2
-    for (i, sn) in cc2.iter().enumerate() {
-        if !used.contains(&i) {
-            done.push(sn.clone());
-        }
-    }
-
-    return done;
-}
-
-fn handle_clique_change(
-    stuff: &mut MetaData,
-    change: CliqueChange,
-    sc: &mut Vec<Clique>,
-    tc: &mut Vec<Clique>,
-) -> Vec<Vec<u32>> {
-    let mut super_nodes: Vec<Vec<u32>> = Vec::new();
-
-    let c1 = if change.is_source {
-        sc[change.clique_index].clone()
-    } else {
-        tc[change.clique_index].clone()
-    };
-
-    for node in change.new_nodes {
-        let c2 = if change.is_source {
-            let index = stuff.index_map.get(&node).unwrap()[1];
-            tc[index].clone()
+        if intersects(&snodes[i], &snodes[j]) {
+            snodes[i] = union(&snodes[i], &snodes[j]);
+            snodes.remove(j);
+            j = snodes.len();
         } else {
-            let index = stuff.index_map.get(&node).unwrap()[0];
-            sc[index].clone()
-        };
-
-        let intersect = c1.node_intersection(&c2);
-        if intersect.len() >= 2 {
-            super_nodes.push(intersect);
+            j -= 1;
         }
     }
-    return super_nodes;
+    return snodes;
 }
 
 fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
@@ -137,25 +72,6 @@ fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
     return false;
 }
 
-fn intersects_for_vec_of_vec(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
-    for n in v1 {
-        if v2.contains(&n) {
-            return true;
-        }
-    }
-    return false;
-}
-
-fn do_intersection(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
-    let mut intersection: Vec<u32> = Vec::new();
-    for n in v1 {
-        if v2.contains(&n) {
-            intersection.push(*n);
-        }
-    }
-    return intersection;
-}
-
 fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
     let mut result: Vec<u32> = v1.clone();
 
@@ -164,6 +80,20 @@ fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
             result.push(*e);
         }
     }
-
     return result;
+}
+
+fn apply_changes(
+    dataset: &mut Dataset,
+    meta: &mut Meta,
+    snodes: &Vec<Vec<u32>>,
+    sc: &mut CliqueCollection,
+    tc: &mut CliqueCollection,
+) {
+    for snode in snodes {
+        let new_node = dataset.new_snode(snode, meta);
+        meta.new_snode(snode, &new_node);
+        sc.new_snode(snode, &new_node);
+        tc.new_snode(snode, &new_node);
+    }
 }
