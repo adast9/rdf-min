@@ -1,5 +1,5 @@
-use crate::classes::dataset::Dataset;
-use crate::classes::meta::Meta;
+use crate::models::dataset::Dataset;
+use crate::models::meta::Meta;
 use crate::util::io;
 use crate::Config;
 use std::fs::create_dir;

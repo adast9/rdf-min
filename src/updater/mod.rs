@@ -1,6 +1,4 @@
-use crate::classes::{
-    clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta,
-};
+use crate::models::{clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta};
 mod insertion;
 
 pub fn run(

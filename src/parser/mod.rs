@@ -1,6 +1,6 @@
-use crate::classes::clique::CliqueCollection;
-use crate::classes::dataset::Dataset;
-use crate::classes::meta::Meta;
+use crate::models::clique::CliqueCollection;
+use crate::models::dataset::Dataset;
+use crate::models::meta::Meta;
 use crate::Config;
 pub mod clique;
 pub mod dataset;

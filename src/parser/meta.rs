@@ -1,5 +1,5 @@
-use crate::classes::meta::Meta;
-use crate::classes::meta::NodeInfo;
+use crate::models::meta::Meta;
+use crate::models::meta::NodeInfo;
 use crate::Config;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

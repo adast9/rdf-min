@@ -1,4 +1,4 @@
-use crate::classes::{
+use crate::models::{
     clique::{CliqueChange, CliqueCollection},
     dataset::Dataset,
     meta::Meta,

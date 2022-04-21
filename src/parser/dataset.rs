@@ -1,4 +1,4 @@
-use crate::classes::dataset::Dataset;
+use crate::models::dataset::Dataset;
 use crate::util::io;
 use crate::Config;
 use std::io::Error;

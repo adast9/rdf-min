@@ -1,5 +1,5 @@
-use crate::classes::dict::Dict;
-use crate::classes::triple::TripleCollection;
+use crate::models::dict::Dict;
+use crate::models::triple::TripleCollection;
 
 use super::meta::Meta;
 use super::triple::Triple;
