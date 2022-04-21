@@ -1,4 +1,5 @@
 use crate::models::{clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta};
+mod deletion2;
 mod insertion;
 
 pub fn run(
