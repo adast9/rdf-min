@@ -181,6 +181,17 @@ impl Dataset {
         return id;
     }
 
+    pub fn remove_supernode(&mut self, p: &u32, snode: Vec<u32>, meta: &mut Meta) {
+        for n in 0..snode.len() {
+            if n != snode.len() - 1 {
+                self.split(&snode[n], p, meta, true);
+            } else {
+                self.to_single_node(p, &snode[n]);
+            }
+        }
+        self.dict.remove_by_value(p);
+    }
+
     /// Replaces all occurences of a node in `snode` with `new_node` in `triples`.
     fn rename_triples(&mut self, old: &Vec<u32>, new: &u32) {
         let mut data_triples_to_remove: Vec<usize> = Vec::new();

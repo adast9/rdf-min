@@ -5,7 +5,7 @@ use crate::{
         meta::Meta,
         triple::Triple,
     },
-    util::set_ops::get_disjoint_sets,
+    util::set_ops::{get_disjoint_sets, intersection, intersects},
 };
 
 fn delete_triple(
@@ -37,7 +37,6 @@ fn delete(
 ) -> Option<CliqueChange> {
     let node = if is_source { &triple.sub } else { &triple.obj };
     let n = meta.get_parent(node).unwrap_or(*node);
-    let edges = if is_source { &triple.sub } else { &triple.obj };
 
     // CASE 1: If node is not in a supernode
     if *node == n {
@@ -48,14 +47,26 @@ fn delete(
         }
 
         // 1.2: Check if the clique has to be split
-        let x = cc.get_all_edges(node, is_source, meta);
-        let y = get_disjoint_sets(x);
-
-        if y.len() == 1 {
+        let (mut singlenodes, supernodes, mut edges) = cc.get_all_edges(node, is_source, meta);
+        let new_clique_preds = get_disjoint_sets(edges.clone());
+        if new_clique_preds.len() == 1 {
             return None;
         }
 
-        cc.split_by_preds(node, y, meta, is_source);
+        remove_supernodes(&supernodes, meta, dataset, cc, other_cc);
+
+        split_clique_by_preds(
+            node,
+            &mut singlenodes,
+            supernodes,
+            &mut edges,
+            new_clique_preds,
+            meta,
+            dataset,
+            cc,
+            other_cc,
+        );
+        return None;
     }
 
     return None;
@@ -64,4 +75,61 @@ fn delete(
 fn prepare_triple(triple: &Triple, meta: &mut Meta) {
     meta.remove_incoming(triple);
     meta.remove_outgoing(triple);
+}
+
+fn remove_supernodes(
+    supernodes: &Vec<Vec<u32>>,
+    meta: &mut Meta,
+    dataset: &mut Dataset,
+    cc: &mut CliqueCollection,
+    other_cc: &mut CliqueCollection,
+) {
+    for s in supernodes {
+        let parent = meta.get_parent(&s[0]).unwrap();
+        dataset.remove_supernode(&parent, s.to_vec(), meta);
+        cc.remove_supernode(&parent, meta);
+        other_cc.remove_supernode(&parent, meta);
+        meta.remove_supernode(&parent);
+    }
+}
+
+pub fn split_clique_by_preds(
+    target: &u32,
+    singlenodes: &mut Vec<u32>,
+    supernodes: Vec<Vec<u32>>,
+    edges: &mut Vec<Vec<u32>>,
+    clique_preds: Vec<Vec<u32>>,
+    meta: &mut Meta,
+    dataset: &mut Dataset,
+    cc: &mut CliqueCollection,
+    other_cc: &mut CliqueCollection,
+) {
+    let index = cc.get_index(target);
+
+    for preds in clique_preds {
+        let mut new_nodes: Vec<u32> = Vec::new();
+
+        for i in (0..singlenodes.len()).rev() {
+            if intersects(&edges[i], &preds) {
+                new_nodes.push(singlenodes[i]);
+                singlenodes.remove(i);
+                edges.remove(i);
+            }
+        }
+
+        cc.new_clique(&preds, &new_nodes);
+
+        for i in (0..supernodes.len()).rev() {
+            if let Some(intersec) = intersection(&supernodes[i], &new_nodes) {
+                if intersec.len() > 1 {
+                    let new_snode = dataset.new_snode(&intersec, meta);
+                    meta.new_snode(&intersec, &new_snode);
+                    cc.new_snode(&intersec, &new_snode);
+                    other_cc.new_snode(&intersec, &new_snode);
+                }
+            }
+        }
+    }
+
+    cc.remove_clique_by_index(index);
 }

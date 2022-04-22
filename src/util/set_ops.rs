@@ -32,6 +32,16 @@ pub fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
     return false;
 }
 
+pub fn intersection(v1: &Vec<u32>, v2: &Vec<u32>) -> Option<Vec<u32>> {
+    let mut result: Vec<u32> = Vec::new();
+    for n in v1 {
+        if v2.contains(&n) {
+            result.push(*n);
+        }
+    }
+    return if result.len() > 0 { Some(result) } else { None };
+}
+
 fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
     let mut result: Vec<u32> = v1.clone();
 

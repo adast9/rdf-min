@@ -226,6 +226,14 @@ impl Meta {
         }
     }
 
+    pub fn get_preds(&self, n: &u32, is_source: bool) -> Vec<u32> {
+        if is_source {
+            return self.get_outgoing_preds(n);
+        } else {
+            return self.get_incoming_preds(n);
+        }
+    }
+
     pub fn get_incoming_preds(&self, n: &u32) -> Vec<u32> {
         let mut preds: Vec<u32> = Vec::new();
         for t in &self.nodes.get(n).unwrap().incoming {
@@ -240,6 +248,14 @@ impl Meta {
             preds.push(t[0]);
         }
         return preds;
+    }
+
+    pub fn remove_supernode(&mut self, id: &u32) {
+        let sn = self.get_supernode(id).unwrap().clone();
+        for n in sn {
+            self.nodes.get_mut(&n).unwrap().remove_parent();
+        }
+        self.supernodes.remove(id);
     }
 }
 
