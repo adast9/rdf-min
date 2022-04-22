@@ -1,5 +1,9 @@
 use std::collections::{HashMap, VecDeque};
 
+use crate::util::set_ops::intersects;
+
+use super::meta::Meta;
+
 #[derive(Clone)]
 pub struct Clique {
     pub preds: Vec<u32>,
@@ -31,6 +35,20 @@ impl Clique {
         }
 
         return intersection;
+    }
+
+    pub fn get_all_edges(&self, is_source: bool, meta: &mut Meta) -> Vec<Vec<u32>> {
+        let mut edges: Vec<Vec<u32>> = Vec::new();
+
+        for node in &self.nodes {
+            if is_source {
+                edges.push(meta.get_outgoing_preds(node));
+            } else {
+                edges.push(meta.get_incoming_preds(node));
+            }
+        }
+
+        return edges;
     }
 }
 
@@ -86,10 +104,8 @@ impl CliqueCollection {
 
         a_clique.nodes.extend(b_clique.nodes);
         a_clique.preds.extend(b_clique.preds);
-        self.cliques[b_index].nodes = vec![];
-        self.cliques[b_index].preds = vec![];
 
-        self.queue.push_back(b_index);
+        self.remove_clique_by_index(b_index);
     }
 
     /// Adds `pred` to the clique containing `node`.
@@ -206,6 +222,11 @@ impl CliqueCollection {
         self.add_node_to_clique(node, target);
     }
 
+    pub fn move_node_to_empty_clique(&mut self, node: &u32) {
+        self.remove_node(node);
+        self.add_node_to_empty_clique(node);
+    }
+
     pub fn remove_node(&mut self, node: &u32) {
         let index = self.get_index(node);
         self.cliques[index].remove_node(node);
@@ -217,11 +238,11 @@ impl CliqueCollection {
         }
     }
 
-    pub fn split_and_move(&mut self, node: &u32, target: &u32) {
+    pub fn snode_split_and_move(&mut self, node: &u32, target: &u32) {
         self.add_node_to_clique(node, target);
     }
 
-    pub fn split(&mut self, node: &u32, parent: &u32) {
+    pub fn snode_split(&mut self, node: &u32, parent: &u32) {
         self.add_node_to_clique(node, &parent);
     }
 
@@ -235,6 +256,49 @@ impl CliqueCollection {
         for n in old {
             self.remove_node(n);
         }
+    }
+
+    pub fn get_all_edges(&self, target: &u32, is_source: bool, meta: &mut Meta) -> Vec<Vec<u32>> {
+        return self
+            .get_clique_by_node(target)
+            .get_all_edges(is_source, meta);
+    }
+
+    fn split_by_preds(
+        &mut self,
+        target: &u32,
+        preds: &Vec<Vec<u32>>,
+        meta: &mut Meta,
+        is_source: bool,
+    ) {
+        let c = self.get_clique_by_node(target);
+        let index = self.get_index(target);
+
+        for el in preds {
+            let mut new_nodes: Vec<u32> = Vec::new();
+
+            for node in &c.nodes {
+                let x = if is_source {
+                    meta.get_outgoing_preds(node)
+                } else {
+                    meta.get_incoming_preds(node)
+                };
+
+                if intersects(&x, el) {
+                    new_nodes.push(*node);
+                }
+            }
+
+            self.new_clique(&el, &new_nodes);
+        }
+
+        self.remove_clique_by_index(index);
+    }
+
+    fn remove_clique_by_index(&mut self, index: usize) {
+        self.cliques[index].nodes = vec![];
+        self.cliques[index].preds = vec![];
+        self.queue.push_back(index);
     }
 }
 

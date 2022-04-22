@@ -89,6 +89,22 @@ impl Meta {
             .push([triple.pred, triple.sub]);
     }
 
+    pub fn remove_outgoing(&mut self, triple: &Triple) {
+        self.nodes
+            .get_mut(&triple.sub)
+            .unwrap()
+            .outgoing
+            .retain(|x| x[0] != triple.pred && x[1] != triple.obj);
+    }
+
+    pub fn remove_incoming(&mut self, triple: &Triple) {
+        self.nodes
+            .get_mut(&triple.obj)
+            .unwrap()
+            .incoming
+            .retain(|x| x[0] != triple.pred && x[1] != triple.sub);
+    }
+
     pub fn get_parent(&self, node: &u32) -> Option<u32> {
         return self.nodes.get(node).unwrap().parent;
     }
@@ -200,6 +216,30 @@ impl Meta {
 
     pub fn get_supernode(&self, n: &u32) -> Option<&Vec<u32>> {
         return self.supernodes.get(n);
+    }
+
+    pub fn has_no_edges_left(&self, n: &u32, is_source: bool) -> bool {
+        if is_source {
+            return self.nodes.get(n).unwrap().outgoing.is_empty();
+        } else {
+            return self.nodes.get(n).unwrap().incoming.is_empty();
+        }
+    }
+
+    pub fn get_incoming_preds(&self, n: &u32) -> Vec<u32> {
+        let mut preds: Vec<u32> = Vec::new();
+        for t in &self.nodes.get(n).unwrap().incoming {
+            preds.push(t[0]);
+        }
+        return preds;
+    }
+
+    pub fn get_outgoing_preds(&self, n: &u32) -> Vec<u32> {
+        let mut preds: Vec<u32> = Vec::new();
+        for t in &self.nodes.get(n).unwrap().outgoing {
+            preds.push(t[0]);
+        }
+        return preds;
     }
 }
 

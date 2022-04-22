@@ -127,8 +127,8 @@ fn split(
     let parent = meta.get_parent(node).unwrap();
     let to_single = meta.remove_from_supernode(node);
 
-    cc.split_and_move(node, target_pred);
-    other_cc.split(node, &parent);
+    cc.snode_split_and_move(node, target_pred);
+    other_cc.snode_split(node, &parent);
     dataset.split(node, &parent, meta, to_single);
 
     if to_single {

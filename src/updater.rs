@@ -1,4 +1,7 @@
-use crate::models::{clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta};
+use crate::{
+    models::{clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta},
+    util::set_ops::get_disjoint_sets,
+};
 mod deletion2;
 mod insertion;
 
@@ -41,47 +44,7 @@ pub fn get_super_nodes(
         return snodes;
     }
 
-    let mut i = 0;
-    let mut j = snodes.len() - 1;
-
-    loop {
-        if i == j {
-            i += 1;
-            if i == snodes.len() {
-                break;
-            }
-            j = snodes.len();
-        }
-
-        if intersects(&snodes[i], &snodes[j]) {
-            snodes[i] = union(&snodes[i], &snodes[j]);
-            snodes.remove(j);
-            j = snodes.len();
-        } else {
-            j -= 1;
-        }
-    }
-    return snodes;
-}
-
-fn intersects(v1: &Vec<u32>, v2: &Vec<u32>) -> bool {
-    for n in v1 {
-        if v2.contains(&n) {
-            return true;
-        }
-    }
-    return false;
-}
-
-fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
-    let mut result: Vec<u32> = v1.clone();
-
-    for e in v2 {
-        if !result.contains(e) {
-            result.push(*e);
-        }
-    }
-    return result;
+    return get_disjoint_sets(snodes);
 }
 
 fn apply_changes(
