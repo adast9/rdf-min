@@ -48,8 +48,7 @@ impl Clique {
         let mut edges: Vec<Vec<u32>> = Vec::new();
 
         for n in &self.nodes {
-            if let Some(p) = meta.get_parent(n) {
-                let child_nodes = meta.get_supernode(&p).unwrap();
+            if let Some(child_nodes) = meta.get_supernode(&n) {
                 supernodes.push(child_nodes.to_vec());
 
                 for c in child_nodes {

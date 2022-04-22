@@ -1,4 +1,0 @@
-<http://stardog.com/tutorial/The_Beatles> <http://stardog.com/tutorial/member> <http://stardog.com/tutorial/John_Lennon_Paul_McCartney_Ringo_Starr_George_Harrison> .
-<http://stardog.com/tutorial/Please_Please_Me> <http://stardog.com/tutorial/artist> <http://stardog.com/tutorial/The_Beatles> .
-<http://stardog.com/tutorial/Please_Please_Me> <http://stardog.com/tutorial/track> <http://stardog.com/tutorial/Love_Me_Do> .
-<http://stardog.com/tutorial/Love_Me_Do> <http://stardog.com/tutorial/writer> <http://stardog.com/tutorial/John_Lennon_Paul_McCartney_Ringo_Starr_George_Harrison> .

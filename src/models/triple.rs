@@ -82,4 +82,9 @@ impl TripleCollection {
             self.data_triples.push(triple.clone());
         }
     }
+
+    pub fn remove_triple(&mut self, triple: &Triple) {
+        self.data_triples.retain(|t| t != triple);
+        self.type_triples.retain(|t| t != triple);
+    }
 }

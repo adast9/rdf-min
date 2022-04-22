@@ -218,6 +218,10 @@ impl Meta {
         return self.supernodes.get(n);
     }
 
+    pub fn get_mut_supernode(&mut self, n: &u32) -> Option<&mut Vec<u32>> {
+        return self.supernodes.get_mut(n);
+    }
+
     pub fn has_no_edges_left(&self, n: &u32, is_source: bool) -> bool {
         if is_source {
             return self.nodes.get(n).unwrap().outgoing.is_empty();

@@ -8,14 +8,14 @@ use crate::{
     util::set_ops::{get_disjoint_sets, intersection, intersects},
 };
 
-fn delete_triple(
+pub fn delete_triple(
     triple: &Triple,
     dataset: &mut Dataset,
     meta: &mut Meta,
     sc: &mut CliqueCollection,
     tc: &mut CliqueCollection,
 ) -> Vec<CliqueChange> {
-    prepare_triple(triple, meta);
+    prepare_triple(triple, meta, dataset);
 
     let mut changes: Vec<CliqueChange> = Vec::new();
     if let Some(change) = delete(triple, dataset, meta, sc, tc, true) {
@@ -72,9 +72,10 @@ fn delete(
     return None;
 }
 
-fn prepare_triple(triple: &Triple, meta: &mut Meta) {
+fn prepare_triple(triple: &Triple, meta: &mut Meta, dataset: &mut Dataset) {
     meta.remove_incoming(triple);
     meta.remove_outgoing(triple);
+    dataset.remove_triple(triple);
 }
 
 fn remove_supernodes(

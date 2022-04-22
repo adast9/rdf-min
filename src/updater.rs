@@ -27,6 +27,23 @@ pub fn run(
         let snodes = get_super_nodes(changes, sc, tc);
         apply_changes(dataset, meta, &snodes, sc, tc);
     }
+
+    for i in 0..dataset.deletions.data_triples.len() {
+        let changes = deletion2::delete_triple(
+            &dataset.deletions.data_triples[i].clone(),
+            dataset,
+            meta,
+            sc,
+            tc,
+        );
+
+        if changes.is_empty() {
+            continue;
+        }
+
+        let snodes = get_super_nodes(changes, sc, tc);
+        apply_changes(dataset, meta, &snodes, sc, tc);
+    }
 }
 
 pub fn get_super_nodes(

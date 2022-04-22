@@ -182,14 +182,19 @@ impl Dataset {
     }
 
     pub fn remove_supernode(&mut self, p: &u32, snode: Vec<u32>, meta: &mut Meta) {
-        for n in 0..snode.len() {
-            if n != snode.len() - 1 {
-                self.split(&snode[n], p, meta, true);
+        for i in 0..snode.len() {
+            if i != snode.len() - 1 {
+                meta.get_mut_supernode(&p)
+                    .unwrap()
+                    .retain(|x| *x != snode[i]);
+                self.split(&snode[i], p, meta, true);
             } else {
-                self.to_single_node(p, &snode[n]);
+                self.to_single_node(p, &snode[i]);
             }
         }
-        self.dict.remove_by_value(p);
+        if let Some(x) = meta.get_mut_supernode(&p) {
+            *x = snode.clone();
+        }
     }
 
     /// Replaces all occurences of a node in `snode` with `new_node` in `triples`.
@@ -267,6 +272,10 @@ impl Dataset {
                 to_remove.push(i);
             }
         }
+    }
+
+    pub fn remove_triple(&mut self, triple: &Triple) {
+        self.triples.remove_triple(triple);
     }
 }
 
