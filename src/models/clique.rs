@@ -246,7 +246,7 @@ impl CliqueCollection {
 
         if index != 0 && self.cliques[index].nodes.is_empty() {
             self.queue.push_back(index);
-            panic!("You just removed the last node from a clique. wtf?");
+            // panic!("You just removed the last node from a clique. wtf?");
         }
     }
 
