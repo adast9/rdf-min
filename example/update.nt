@@ -1,1 +1,3 @@
--<http://p6.gov/n2> <http://p6.gov/p2> <http://p6.gov/esben2> .
+<http://p6.gov/esben2> <http://p6.gov/xxx> <http://p6.gov/alan> .
+<http://p6.gov/esben4> <http://p6.gov/eee> <http://p6.gov/bob> .
+-<http://p6.gov/esben2> <http://p6.gov/xxx> <http://p6.gov/bob> .

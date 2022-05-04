@@ -45,29 +45,28 @@ fn delete(
             cc.move_node_to_empty_clique(node);
             return Some(CliqueChange::new(0, vec![*node], is_source));
         }
+    }
 
-        // 1.2: Check if the clique has to be split
-        let (mut singlenodes, supernodes, mut edges) = cc.get_all_edges(node, is_source, meta);
-        let new_clique_preds = get_disjoint_sets(edges.clone());
-        if new_clique_preds.len() == 1 {
-            return None;
-        }
-
-        remove_supernodes(&supernodes, meta, dataset, cc, other_cc);
-
-        split_clique_by_preds(
-            node,
-            &mut singlenodes,
-            supernodes,
-            &mut edges,
-            new_clique_preds,
-            meta,
-            dataset,
-            cc,
-            other_cc,
-        );
+    // CASE 2: Check if the clique has to be split
+    let (mut singlenodes, supernodes, mut edges) = cc.get_all_edges(node, is_source, meta);
+    let new_clique_preds = get_disjoint_sets(edges.clone());
+    if new_clique_preds.len() == 1 {
         return None;
     }
+
+    remove_supernodes(&supernodes, meta, dataset, cc, other_cc);
+
+    split_clique_by_preds(
+        node,
+        &mut singlenodes,
+        supernodes,
+        &mut edges,
+        new_clique_preds,
+        meta,
+        dataset,
+        cc,
+        other_cc,
+    );
 
     return None;
 }
