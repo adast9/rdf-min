@@ -44,6 +44,14 @@ pub fn run(
         let snodes = get_super_nodes(changes, sc, tc);
         apply_changes(dataset, meta, &snodes, sc, tc);
     }
+
+    for i in 0..dataset.insertions.type_triples.len() {
+        if !meta.contains(&dataset.insertions.type_triples[i].sub) {
+            meta.new_node(&dataset.insertions.type_triples[i], true)
+        } else {
+            meta.add_outgoing(&dataset.insertions.type_triples[i]);
+        }
+    }
 }
 
 pub fn get_super_nodes(

@@ -31,7 +31,7 @@ impl Triple {
             sub: dict.add_if_new(&sub_str),
             pred: dict.add_if_new(&pred_str),
             obj: dict.add_if_new(&obj_str),
-            is_type: words[1] == TYPE_STRING,
+            is_type: pred_str == TYPE_STRING,
         }
     }
 

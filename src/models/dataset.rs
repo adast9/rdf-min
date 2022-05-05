@@ -14,9 +14,11 @@ pub struct Dataset {
 impl Dataset {
     pub fn new(t_l: Vec<String>, i_l: Vec<String>, d_l: Vec<String>) -> Self {
         let mut dict = Dict::empty();
-        let triples = TripleCollection::new(t_l, &mut dict);
+        let mut triples = TripleCollection::new(t_l, &mut dict);
         let insertions = TripleCollection::new(i_l, &mut dict);
         let deletions = TripleCollection::new(d_l, &mut dict);
+
+        triples.type_triples.extend(insertions.type_triples.clone());
 
         Self {
             dict,

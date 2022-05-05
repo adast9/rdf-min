@@ -94,7 +94,7 @@ impl Meta {
             .get_mut(&triple.sub)
             .unwrap()
             .outgoing
-            .retain(|x| x[0] != triple.pred && x[1] != triple.obj);
+            .retain(|x| !(x[0] == triple.pred && x[1] == triple.obj));
     }
 
     pub fn remove_incoming(&mut self, triple: &Triple) {
@@ -102,7 +102,7 @@ impl Meta {
             .get_mut(&triple.obj)
             .unwrap()
             .incoming
-            .retain(|x| x[0] != triple.pred && x[1] != triple.sub);
+            .retain(|x| !(x[0] == triple.pred && x[1] == triple.sub));
     }
 
     pub fn get_parent(&self, node: &u32) -> Option<u32> {
@@ -151,12 +151,13 @@ impl Meta {
         if !self.contains_supernode(s) {
             for v in &self.nodes.get(s).unwrap().outgoing {
                 if v[0] == *p {
+                    if v[1] == *o {
+                        return true;
+                    }
                     if let Some(parent) = self.get_parent(&v[1]) {
                         if parent == *o {
                             return true;
                         }
-                    } else if v[1] == *o {
-                        return true;
                     }
                 }
             }
