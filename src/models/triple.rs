@@ -85,6 +85,5 @@ impl TripleCollection {
 
     pub fn remove_triple(&mut self, triple: &Triple) {
         self.data_triples.retain(|t| t != triple);
-        self.type_triples.retain(|t| t != triple);
     }
 }

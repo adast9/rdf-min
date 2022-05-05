@@ -28,9 +28,6 @@ fn write_triples(path: &PathBuf, dataset: &Dataset) -> Result<(), Error> {
     for t in &dataset.triples.data_triples {
         triple_strings.push(t.to_string(dataset));
     }
-    for t in &dataset.triples.type_triples {
-        triple_strings.push(t.to_string(dataset));
-    }
     Ok(io::write_lines(path, &triple_strings)?)
 }
 

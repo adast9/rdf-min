@@ -262,6 +262,10 @@ impl Meta {
         }
         self.supernodes.remove(id);
     }
+
+    pub fn get_nodes(&self) -> &HashMap<u32, NodeInfo> {
+        return &self.nodes;
+    }
 }
 
 pub struct NodeInfo {
