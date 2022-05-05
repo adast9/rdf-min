@@ -12,11 +12,11 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    pub fn new(t_l: Vec<String>, i_l: Vec<String>, d_l: Vec<String>) -> Self {
+    pub fn new(t_l: Vec<String>, i_l: Vec<String>, d_l: Vec<String>, meta: &mut Meta) -> Self {
         let mut dict = Dict::empty();
-        let triples = TripleCollection::new(t_l, &mut dict);
-        let insertions = TripleCollection::new(i_l, &mut dict);
-        let deletions = TripleCollection::new(d_l, &mut dict);
+        let triples = TripleCollection::new(t_l, &mut dict, meta, true);
+        let insertions = TripleCollection::new(i_l, &mut dict, meta, true);
+        let deletions = TripleCollection::new(d_l, &mut dict, meta, false);
 
         Self {
             dict,
@@ -31,12 +31,12 @@ impl Dataset {
         i_l: Vec<String>,
         d_l: Vec<String>,
         dict_l: Vec<String>,
+        meta: &mut Meta,
     ) -> Self {
         let mut dict = Dict::new(&dict_l);
-        let mut triples = TripleCollection::new(t_l, &mut dict);
-        triples.type_triples = Vec::new();
-        let insertions = TripleCollection::new(i_l, &mut dict);
-        let deletions = TripleCollection::new(d_l, &mut dict);
+        let mut triples = TripleCollection::new(t_l, &mut dict, meta, false);
+        let insertions = TripleCollection::new(i_l, &mut dict, meta, true);
+        let deletions = TripleCollection::new(d_l, &mut dict, meta, false);
 
         Self {
             dict,

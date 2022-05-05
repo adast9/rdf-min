@@ -6,16 +6,26 @@ use super::triple::Triple;
 pub struct Meta {
     supernodes: HashMap<u32, Vec<u32>>,
     nodes: HashMap<u32, NodeInfo>,
+    types: HashMap<u32, u32>,
 }
 
 impl Meta {
-    pub fn new(supernodes: HashMap<u32, Vec<u32>>, nodes: HashMap<u32, NodeInfo>) -> Self {
-        Self { supernodes, nodes }
+    pub fn new(
+        supernodes: HashMap<u32, Vec<u32>>,
+        nodes: HashMap<u32, NodeInfo>,
+        types: HashMap<u32, u32>,
+    ) -> Self {
+        Self {
+            supernodes,
+            nodes,
+            types,
+        }
     }
 
     pub fn serialize(&self) -> MetaFile {
         let mut s: Vec<Supernode> = Vec::new();
         let mut q: Vec<Node> = Vec::new();
+        let mut t: Vec<[u32; 2]> = Vec::new();
 
         for (k, v) in &self.supernodes {
             s.push(Supernode {
@@ -32,12 +42,18 @@ impl Meta {
                 o: v.outgoing.to_vec(),
             });
         }
-        return MetaFile { s, q };
+
+        for (k, v) in &self.types {
+            t.push([*k, *v]);
+        }
+
+        return MetaFile { s, q, t };
     }
 
     pub fn deserialize(file: MetaFile) -> Self {
         let mut supernodes: HashMap<u32, Vec<u32>> = HashMap::new();
         let mut nodes: HashMap<u32, NodeInfo> = HashMap::new();
+        let mut types: HashMap<u32, u32> = HashMap::new();
 
         for snode in file.s {
             supernodes.insert(snode.i, snode.g.to_vec());
@@ -46,7 +62,12 @@ impl Meta {
         for node in file.q {
             nodes.insert(node.i, NodeInfo::new(&node.p, &node.n, &node.o));
         }
-        return Self::new(supernodes, nodes);
+
+        for ty in file.t {
+            types.insert(ty[0], ty[1]);
+        }
+
+        return Self::new(supernodes, nodes, types);
     }
 
     pub fn contains(&self, node: &u32) -> bool {
@@ -263,8 +284,12 @@ impl Meta {
         self.supernodes.remove(id);
     }
 
-    pub fn get_nodes(&self) -> &HashMap<u32, NodeInfo> {
-        return &self.nodes;
+    pub fn get_types(&self) -> &HashMap<u32, u32> {
+        return &self.types;
+    }
+
+    pub fn add_type(&mut self, s: &u32, o: &u32) {
+        self.types.insert(*s, *o);
     }
 }
 

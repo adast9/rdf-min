@@ -31,8 +31,6 @@ pub fn run(
         apply_changes(dataset, meta, &snodes, sc, tc);
     }
 
-    add_types_to_meta(dataset, meta);
-
     for i in 0..dataset.deletions.data_triples.len() {
         let changes = deletion2::delete_triple(
             &dataset.deletions.data_triples[i].clone(),
@@ -86,42 +84,21 @@ fn apply_changes(
     }
 }
 
-fn add_types_to_meta(dataset: &Dataset, meta: &mut Meta) {
-    for t in &dataset.triples.type_triples {
-        if !meta.contains(&t.sub) {
-            meta.new_node(t, true);
-        } else {
-            meta.add_outgoing(&t);
-        }
-    }
-    for t in &dataset.insertions.type_triples {
-        if !meta.contains(&t.sub) {
-            meta.new_node(t, true);
-        } else {
-            meta.add_outgoing(&t);
-        }
-    }
-    for t in &dataset.deletions.type_triples {
-        if !meta.contains(&t.sub) {
-            panic!("Deleting a node that doesn't exist! And that's some insane crazy super duper insaneo mode shit.");
-        } else {
-            meta.remove_outgoing(&t);
-        }
-    }
-}
-
 fn add_types_to_dataset(dataset: &mut Dataset, meta: &mut Meta) {
-    const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
-    for (k, v) in meta.get_nodes().into_iter() {
-        for o in &v.outgoing {
-            if o[0] == dataset.get_from_dict(TYPE_STRING.to_string()) {
-                dataset.triples.add_data_triple(&Triple::new(
-                    v.parent.unwrap_or(*k),
-                    o[0],
-                    o[1],
-                    true,
-                ));
-            }
+    let type_pred =
+        dataset.get_from_dict("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".to_string());
+    for (s, o) in meta.get_types().into_iter() {
+        if meta.contains(s) {
+            dataset.triples.add_data_triple(&Triple::new(
+                meta.get_parent(s).unwrap_or(*s),
+                type_pred,
+                *o,
+                true,
+            ));
+        } else {
+            dataset
+                .triples
+                .add_data_triple(&Triple::new(*s, type_pred, *o, true));
         }
     }
 }

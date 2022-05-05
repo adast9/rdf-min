@@ -10,7 +10,8 @@ pub fn parse_meta(config: &Config) -> Result<Meta, io::Error> {
     if config.use_fast {
         let supernodes: HashMap<u32, Vec<u32>> = HashMap::new();
         let nodes: HashMap<u32, NodeInfo> = HashMap::new();
-        Ok(Meta::new(supernodes, nodes))
+        let types: HashMap<u32, u32> = HashMap::new();
+        Ok(Meta::new(supernodes, nodes, types))
     } else {
         let file_str = fs::read_to_string(&config.meta_folder_path.join("meta.json"))?;
         let file_data: MetaFile = serde_json::from_str(&file_str)?;
@@ -22,6 +23,7 @@ pub fn parse_meta(config: &Config) -> Result<Meta, io::Error> {
 pub struct MetaFile {
     pub s: Vec<Supernode>,
     pub q: Vec<Node>,
+    pub t: Vec<[u32; 2]>,
 }
 
 #[derive(Serialize, Deserialize)]

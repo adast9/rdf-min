@@ -1,5 +1,6 @@
 use super::dataset::Dataset;
 use super::dict::Dict;
+use super::meta::Meta;
 
 const TYPE_STRING: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
 
@@ -54,27 +55,24 @@ impl Triple {
 
 pub struct TripleCollection {
     pub data_triples: Vec<Triple>,
-    pub type_triples: Vec<Triple>,
 }
 
 impl TripleCollection {
-    pub fn new(triples: Vec<String>, dict: &mut Dict) -> Self {
+    pub fn new(triples: Vec<String>, dict: &mut Dict, meta: &mut Meta, add_type: bool) -> Self {
         let mut data_triples: Vec<Triple> = Vec::new();
-        let mut type_triples: Vec<Triple> = Vec::new();
 
         for l in triples {
             let t = Triple::from_string(&l, dict);
             if t.is_type {
-                type_triples.push(t);
+                if add_type {
+                    meta.add_type(&t.sub, &t.obj);
+                }
             } else {
                 data_triples.push(t);
             }
         }
 
-        Self {
-            data_triples,
-            type_triples,
-        }
+        Self { data_triples }
     }
 
     pub fn add_data_triple(&mut self, triple: &Triple) {
