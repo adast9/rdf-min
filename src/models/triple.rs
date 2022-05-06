@@ -75,6 +75,21 @@ impl TripleCollection {
         Self { data_triples }
     }
 
+    pub fn new_with_deletion(triples: Vec<String>, dict: &mut Dict, meta: &mut Meta) -> Self {
+        let mut data_triples: Vec<Triple> = Vec::new();
+
+        for l in triples {
+            let t = Triple::from_string(&l, dict);
+            if t.is_type {
+                meta.delete_type(&t.sub, &t.obj);
+            } else {
+                data_triples.push(t);
+            }
+        }
+
+        Self { data_triples }
+    }
+
     pub fn add_data_triple(&mut self, triple: &Triple) {
         if !self.data_triples.contains(triple) {
             self.data_triples.push(triple.clone());

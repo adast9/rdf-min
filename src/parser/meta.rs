@@ -10,7 +10,7 @@ pub fn parse_meta(config: &Config) -> Result<Meta, io::Error> {
     if config.use_fast {
         let supernodes: HashMap<u32, Vec<u32>> = HashMap::new();
         let nodes: HashMap<u32, NodeInfo> = HashMap::new();
-        let types: HashMap<u32, u32> = HashMap::new();
+        let types: Vec<[u32; 2]> = Vec::new();
         Ok(Meta::new(supernodes, nodes, types))
     } else {
         let file_str = fs::read_to_string(&config.meta_folder_path.join("meta.json"))?;

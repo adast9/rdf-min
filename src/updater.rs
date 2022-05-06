@@ -87,7 +87,7 @@ fn apply_changes(
 fn add_types_to_dataset(dataset: &mut Dataset, meta: &mut Meta) {
     let type_pred =
         dataset.get_from_dict("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".to_string());
-    for (s, o) in meta.get_types().into_iter() {
+    for [s, o] in meta.get_types() {
         if meta.contains(s) {
             dataset.triples.add_data_triple(&Triple::new(
                 meta.get_parent(s).unwrap_or(*s),

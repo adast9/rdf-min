@@ -16,7 +16,7 @@ impl Dataset {
         let mut dict = Dict::empty();
         let triples = TripleCollection::new(t_l, &mut dict, meta, true);
         let insertions = TripleCollection::new(i_l, &mut dict, meta, true);
-        let deletions = TripleCollection::new(d_l, &mut dict, meta, false);
+        let deletions = TripleCollection::new_with_deletion(d_l, &mut dict, meta);
 
         Self {
             dict,
@@ -34,9 +34,9 @@ impl Dataset {
         meta: &mut Meta,
     ) -> Self {
         let mut dict = Dict::new(&dict_l);
-        let mut triples = TripleCollection::new(t_l, &mut dict, meta, false);
+        let triples = TripleCollection::new(t_l, &mut dict, meta, false);
         let insertions = TripleCollection::new(i_l, &mut dict, meta, true);
-        let deletions = TripleCollection::new(d_l, &mut dict, meta, false);
+        let deletions = TripleCollection::new_with_deletion(d_l, &mut dict, meta);
 
         Self {
             dict,

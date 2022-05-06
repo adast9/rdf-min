@@ -6,14 +6,14 @@ use super::triple::Triple;
 pub struct Meta {
     supernodes: HashMap<u32, Vec<u32>>,
     nodes: HashMap<u32, NodeInfo>,
-    types: HashMap<u32, u32>,
+    types: Vec<[u32; 2]>,
 }
 
 impl Meta {
     pub fn new(
         supernodes: HashMap<u32, Vec<u32>>,
         nodes: HashMap<u32, NodeInfo>,
-        types: HashMap<u32, u32>,
+        types: Vec<[u32; 2]>,
     ) -> Self {
         Self {
             supernodes,
@@ -43,8 +43,8 @@ impl Meta {
             });
         }
 
-        for (k, v) in &self.types {
-            t.push([*k, *v]);
+        for v in &self.types {
+            t.push(*v);
         }
 
         return MetaFile { s, q, t };
@@ -53,7 +53,7 @@ impl Meta {
     pub fn deserialize(file: MetaFile) -> Self {
         let mut supernodes: HashMap<u32, Vec<u32>> = HashMap::new();
         let mut nodes: HashMap<u32, NodeInfo> = HashMap::new();
-        let mut types: HashMap<u32, u32> = HashMap::new();
+        let mut types: Vec<[u32; 2]> = Vec::new();
 
         for snode in file.s {
             supernodes.insert(snode.i, snode.g.to_vec());
@@ -64,7 +64,7 @@ impl Meta {
         }
 
         for ty in file.t {
-            types.insert(ty[0], ty[1]);
+            types.push(ty);
         }
 
         return Self::new(supernodes, nodes, types);
@@ -284,12 +284,22 @@ impl Meta {
         self.supernodes.remove(id);
     }
 
-    pub fn get_types(&self) -> &HashMap<u32, u32> {
+    pub fn get_types(&self) -> &Vec<[u32; 2]> {
         return &self.types;
     }
 
     pub fn add_type(&mut self, s: &u32, o: &u32) {
-        self.types.insert(*s, *o);
+        self.types.push([*s, *o]);
+    }
+
+    pub fn delete_type(&mut self, s: &u32, o: &u32) {
+        for i in 0..self.types.len() {
+            if self.types[i][0] == *s && self.types[i][1] == *o {
+                self.types.remove(i);
+                return;
+            }
+        }
+        panic!("Trying to delete non-existing type");
     }
 }
 
