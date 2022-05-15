@@ -1,5 +1,8 @@
 use crate::{
-    models::{clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta},
+    models::{
+        clique::CliqueChange, clique::CliqueCollection, dataset::Dataset, meta::Meta,
+        triple::Triple,
+    },
     util::set_ops::get_disjoint_sets,
 };
 mod deletion2;
@@ -44,6 +47,8 @@ pub fn run(
         let snodes = get_super_nodes(changes, sc, tc);
         apply_changes(dataset, meta, &snodes, sc, tc);
     }
+
+    add_types_to_dataset(dataset, meta);
 }
 
 pub fn get_super_nodes(
@@ -76,5 +81,24 @@ fn apply_changes(
         meta.new_snode(snode, &new_node);
         sc.new_snode(snode, &new_node);
         tc.new_snode(snode, &new_node);
+    }
+}
+
+fn add_types_to_dataset(dataset: &mut Dataset, meta: &mut Meta) {
+    let type_pred =
+        dataset.get_from_dict("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".to_string());
+    for [s, o] in meta.get_types() {
+        if meta.contains(s) {
+            dataset.triples.add_data_triple(&Triple::new(
+                meta.get_parent(s).unwrap_or(*s),
+                type_pred,
+                *o,
+                true,
+            ));
+        } else {
+            dataset
+                .triples
+                .add_data_triple(&Triple::new(*s, type_pred, *o, true));
+        }
     }
 }

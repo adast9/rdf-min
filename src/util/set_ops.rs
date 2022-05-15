@@ -1,17 +1,21 @@
 pub fn get_disjoint_sets(mut sets: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
+    if sets.len() == 1 {
+        return sets;
+    }
+
     let mut i = 0;
     let mut j = sets.len() - 1;
 
     loop {
         if i == j {
             i += 1;
-            if i == sets.len() {
+            if i >= sets.len() - 1 {
                 break;
             }
             j = sets.len() - 1;
         }
 
-        if intersects(&sets[i], &sets[j]) {
+        if (sets[i].len() == 0 && sets[j].len() == 0) || intersects(&sets[i], &sets[j]) {
             sets[i] = union(&sets[i], &sets[j]);
             sets.remove(j);
             j = sets.len() - 1;

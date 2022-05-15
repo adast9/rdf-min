@@ -12,11 +12,11 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    pub fn new(t_l: Vec<String>, i_l: Vec<String>, d_l: Vec<String>) -> Self {
+    pub fn new(t_l: Vec<String>, i_l: Vec<String>, d_l: Vec<String>, meta: &mut Meta) -> Self {
         let mut dict = Dict::empty();
-        let triples = TripleCollection::new(t_l, &mut dict);
-        let insertions = TripleCollection::new(i_l, &mut dict);
-        let deletions = TripleCollection::new(d_l, &mut dict);
+        let triples = TripleCollection::new(t_l, &mut dict, meta, true);
+        let insertions = TripleCollection::new(i_l, &mut dict, meta, true);
+        let deletions = TripleCollection::new_with_deletion(d_l, &mut dict, meta);
 
         Self {
             dict,
@@ -31,11 +31,12 @@ impl Dataset {
         i_l: Vec<String>,
         d_l: Vec<String>,
         dict_l: Vec<String>,
+        meta: &mut Meta,
     ) -> Self {
         let mut dict = Dict::new(&dict_l);
-        let triples = TripleCollection::new(t_l, &mut dict);
-        let insertions = TripleCollection::new(i_l, &mut dict);
-        let deletions = TripleCollection::new(d_l, &mut dict);
+        let triples = TripleCollection::new(t_l, &mut dict, meta, false);
+        let insertions = TripleCollection::new(i_l, &mut dict, meta, true);
+        let deletions = TripleCollection::new_with_deletion(d_l, &mut dict, meta);
 
         Self {
             dict,
@@ -59,20 +60,13 @@ impl Dataset {
 
     pub fn split(&mut self, node: &u32, p: &u32, meta: &Meta, to_single: bool) {
         let mut data_triples_to_remove: Vec<usize> = Vec::new();
-        let mut type_triples_to_remove: Vec<usize> = Vec::new();
 
         for i in 0..self.triples.data_triples.len() {
-            self.split_triple(i, node, p, meta, true, &mut data_triples_to_remove);
-        }
-        for i in 0..self.triples.type_triples.len() {
-            self.split_triple(i, node, p, meta, false, &mut type_triples_to_remove);
+            self.split_triple(i, node, p, meta, &mut data_triples_to_remove);
         }
 
         for i in data_triples_to_remove.iter().rev() {
             self.triples.data_triples.remove(*i);
-        }
-        for i in type_triples_to_remove.iter().rev() {
-            self.triples.type_triples.remove(*i);
         }
 
         if !to_single {
@@ -86,14 +80,9 @@ impl Dataset {
         node: &u32,
         p: &u32,
         meta: &Meta,
-        is_data: bool,
         to_remove: &mut Vec<usize>,
     ) {
-        let triples = if is_data {
-            &mut self.triples.data_triples
-        } else {
-            &mut self.triples.type_triples
-        };
+        let triples = &mut self.triples.data_triples;
 
         if triples[i].sub == *p {
             if !meta.has_outgoing_triple(node, &triples[i].pred, &triples[i].obj) {
@@ -142,9 +131,6 @@ impl Dataset {
 
     pub fn to_single_node(&mut self, p: &u32, node: &u32) {
         for t in self.triples.data_triples.iter_mut() {
-            t.rename_node(&p, &node);
-        }
-        for t in self.triples.type_triples.iter_mut() {
             t.rename_node(&p, &node);
         }
         if self.dict.contains_value(p) {
@@ -200,7 +186,6 @@ impl Dataset {
     /// Replaces all occurences of a node in `snode` with `new_node` in `triples`.
     fn rename_triples(&mut self, old: &Vec<u32>, new: &u32) {
         let mut data_triples_to_remove: Vec<usize> = Vec::new();
-        let mut type_triples_to_remove: Vec<usize> = Vec::new();
 
         for i in 0..self.triples.data_triples.len() {
             for n in old {
@@ -213,23 +198,9 @@ impl Dataset {
                 );
             }
         }
-        for i in 0..self.triples.type_triples.len() {
-            for n in old {
-                Dataset::rename_node(
-                    &mut self.triples.type_triples,
-                    i,
-                    n,
-                    new,
-                    &mut type_triples_to_remove,
-                );
-            }
-        }
 
         for i in data_triples_to_remove.iter().rev() {
             self.triples.data_triples.remove(*i);
-        }
-        for i in type_triples_to_remove.iter().rev() {
-            self.triples.type_triples.remove(*i);
         }
     }
 
@@ -276,6 +247,10 @@ impl Dataset {
 
     pub fn remove_triple(&mut self, triple: &Triple) {
         self.triples.remove_triple(triple);
+    }
+
+    pub fn get_from_dict(&self, key: String) -> u32 {
+        return *self.dict.get(&key).unwrap();
     }
 }
 

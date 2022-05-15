@@ -6,16 +6,26 @@ use super::triple::Triple;
 pub struct Meta {
     supernodes: HashMap<u32, Vec<u32>>,
     nodes: HashMap<u32, NodeInfo>,
+    types: Vec<[u32; 2]>,
 }
 
 impl Meta {
-    pub fn new(supernodes: HashMap<u32, Vec<u32>>, nodes: HashMap<u32, NodeInfo>) -> Self {
-        Self { supernodes, nodes }
+    pub fn new(
+        supernodes: HashMap<u32, Vec<u32>>,
+        nodes: HashMap<u32, NodeInfo>,
+        types: Vec<[u32; 2]>,
+    ) -> Self {
+        Self {
+            supernodes,
+            nodes,
+            types,
+        }
     }
 
     pub fn serialize(&self) -> MetaFile {
         let mut s: Vec<Supernode> = Vec::new();
         let mut q: Vec<Node> = Vec::new();
+        let mut t: Vec<[u32; 2]> = Vec::new();
 
         for (k, v) in &self.supernodes {
             s.push(Supernode {
@@ -32,12 +42,18 @@ impl Meta {
                 o: v.outgoing.to_vec(),
             });
         }
-        return MetaFile { s, q };
+
+        for v in &self.types {
+            t.push(*v);
+        }
+
+        return MetaFile { s, q, t };
     }
 
     pub fn deserialize(file: MetaFile) -> Self {
         let mut supernodes: HashMap<u32, Vec<u32>> = HashMap::new();
         let mut nodes: HashMap<u32, NodeInfo> = HashMap::new();
+        let mut types: Vec<[u32; 2]> = Vec::new();
 
         for snode in file.s {
             supernodes.insert(snode.i, snode.g.to_vec());
@@ -46,7 +62,12 @@ impl Meta {
         for node in file.q {
             nodes.insert(node.i, NodeInfo::new(&node.p, &node.n, &node.o));
         }
-        return Self::new(supernodes, nodes);
+
+        for ty in file.t {
+            types.push(ty);
+        }
+
+        return Self::new(supernodes, nodes, types);
     }
 
     pub fn contains(&self, node: &u32) -> bool {
@@ -94,7 +115,7 @@ impl Meta {
             .get_mut(&triple.sub)
             .unwrap()
             .outgoing
-            .retain(|x| x[0] != triple.pred && x[1] != triple.obj);
+            .retain(|x| !(x[0] == triple.pred && x[1] == triple.obj));
     }
 
     pub fn remove_incoming(&mut self, triple: &Triple) {
@@ -102,7 +123,7 @@ impl Meta {
             .get_mut(&triple.obj)
             .unwrap()
             .incoming
-            .retain(|x| x[0] != triple.pred && x[1] != triple.sub);
+            .retain(|x| !(x[0] == triple.pred && x[1] == triple.sub));
     }
 
     pub fn get_parent(&self, node: &u32) -> Option<u32> {
@@ -151,12 +172,13 @@ impl Meta {
         if !self.contains_supernode(s) {
             for v in &self.nodes.get(s).unwrap().outgoing {
                 if v[0] == *p {
+                    if v[1] == *o {
+                        return true;
+                    }
                     if let Some(parent) = self.get_parent(&v[1]) {
                         if parent == *o {
                             return true;
                         }
-                    } else if v[1] == *o {
-                        return true;
                     }
                 }
             }
@@ -260,6 +282,24 @@ impl Meta {
             self.nodes.get_mut(&n).unwrap().remove_parent();
         }
         self.supernodes.remove(id);
+    }
+
+    pub fn get_types(&self) -> &Vec<[u32; 2]> {
+        return &self.types;
+    }
+
+    pub fn add_type(&mut self, s: &u32, o: &u32) {
+        self.types.push([*s, *o]);
+    }
+
+    pub fn delete_type(&mut self, s: &u32, o: &u32) {
+        for i in 0..self.types.len() {
+            if self.types[i][0] == *s && self.types[i][1] == *o {
+                self.types.remove(i);
+                return;
+            }
+        }
+        panic!("Trying to delete non-existing type");
     }
 }
 

@@ -45,31 +45,29 @@ fn delete(
             cc.move_node_to_empty_clique(node);
             return Some(CliqueChange::new(0, vec![*node], is_source));
         }
+    }
 
-        // 1.2: Check if the clique has to be split
-        let (mut singlenodes, supernodes, mut edges) = cc.get_all_edges(node, is_source, meta);
-        let new_clique_preds = get_disjoint_sets(edges.clone());
-        if new_clique_preds.len() == 1 {
-            return None;
-        }
-
-        remove_supernodes(&supernodes, meta, dataset, cc, other_cc);
-
-        split_clique_by_preds(
-            node,
-            &mut singlenodes,
-            supernodes,
-            &mut edges,
-            new_clique_preds,
-            meta,
-            dataset,
-            cc,
-            other_cc,
-        );
+    // CASE 2: Check if the clique has to be split
+    let (mut singlenodes, supernodes, mut edges) = cc.get_all_edges(&n, is_source, meta);
+    let new_clique_preds = get_disjoint_sets(edges.clone());
+    if new_clique_preds.len() == 1 {
         return None;
     }
 
-    return None;
+    remove_supernodes(&supernodes, meta, dataset, cc, other_cc);
+
+    return split_clique_by_preds(
+        node,
+        &mut singlenodes,
+        supernodes,
+        &mut edges,
+        new_clique_preds,
+        meta,
+        dataset,
+        cc,
+        other_cc,
+        is_source,
+    );
 }
 
 fn prepare_triple(triple: &Triple, meta: &mut Meta, dataset: &mut Dataset) {
@@ -104,10 +102,15 @@ pub fn split_clique_by_preds(
     dataset: &mut Dataset,
     cc: &mut CliqueCollection,
     other_cc: &mut CliqueCollection,
-) {
+    is_source: bool,
+) -> Option<CliqueChange> {
     let index = cc.get_index(target);
 
     for preds in clique_preds {
+        if preds.len() == 0 {
+            continue;
+        }
+
         let mut new_nodes: Vec<u32> = Vec::new();
 
         for i in (0..singlenodes.len()).rev() {
@@ -132,5 +135,14 @@ pub fn split_clique_by_preds(
         }
     }
 
-    cc.remove_clique_by_index(index);
+    if singlenodes.is_empty() {
+        cc.remove_clique_by_index(index);
+        return None;
+    } else {
+        if singlenodes.len() > 1 {
+            panic!("singlenodes.len() > 1");
+        }
+        cc.move_node_to_empty_clique(&singlenodes[0]);
+        return Some(CliqueChange::new(0, vec![singlenodes[0]], is_source));
+    }
 }

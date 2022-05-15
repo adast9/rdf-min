@@ -9,8 +9,8 @@ pub mod meta;
 pub fn run(
     config: &Config,
 ) -> Result<(Dataset, Meta, CliqueCollection, CliqueCollection), std::io::Error> {
-    let dataset = dataset::parse_dataset(&config)?;
-    let meta = meta::parse_meta(&config)?;
+    let mut meta = meta::parse_meta(&config)?;
+    let dataset = dataset::parse_dataset(&config, &mut meta)?;
     let (sc, tc) = clique::create_cliques(&dataset.triples.data_triples);
 
     Ok((dataset, meta, sc, tc))
