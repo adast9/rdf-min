@@ -5,7 +5,7 @@ use crate::{
     },
     util::set_ops::get_disjoint_sets,
 };
-mod deletion2;
+mod deletion;
 mod insertion;
 
 pub fn run(
@@ -32,7 +32,7 @@ pub fn run(
     }
 
     for i in 0..dataset.deletions.data_triples.len() {
-        let changes = deletion2::delete_triple(
+        let changes = deletion::delete_triple(
             &dataset.deletions.data_triples[i].clone(),
             dataset,
             meta,
