@@ -1,0 +1,3 @@
+<http://dblp.l3s.de/d2r/resource/authors/Alan> <http://purl.org/dc/elements/1.1/creator> <http://www.bibsonomy.org/uri/author/Melanie+Herschel> .
+<http://dblp.l3s.de/publication/AcademicPaper> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://dblp.l3s.de/publication/Paper> .
+<http://dblp.l3s.de/d2r/resource/authors/Ioana_Manolescu> <http://purl.org/dc/elements/1.1/rater> <http://dblp.l3s.de/d2r/resource/publications/series/synthesis/2010Naumann> .
